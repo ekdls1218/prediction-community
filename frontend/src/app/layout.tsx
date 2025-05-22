@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" className={pyeongChangPeace.variable}>
       <body>
-        <header className="font-pyeongchang">
+        <header className="shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)]">
           <Header />
         </header>
         <main>{children}</main>
