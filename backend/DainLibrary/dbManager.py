@@ -1,6 +1,6 @@
 import mysql.connector
 
-class dBManager:
+class DBManager:
     @staticmethod
     def makeConCur(host, user, password, database):
         con = mysql.connector.connect(
