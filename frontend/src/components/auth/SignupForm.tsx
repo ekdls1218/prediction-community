@@ -55,18 +55,20 @@ export default function SignUpForm() {
     id: false,
   });
 
+  const userFromData = new FormData();
+
   const inputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const changeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     // console.log(e.target.value);
     const { name, value, files } = e.target;
-    
-    if(name === "nick") {
-      setCheckDuplicate({...checkDuplicate, nick: false})
+
+    if (name === "nick") {
+      setCheckDuplicate({ ...checkDuplicate, nick: false });
     }
-    
-    if(name === "id") {
-      setCheckDuplicate({...checkDuplicate, id: false})
+
+    if (name === "id") {
+      setCheckDuplicate({ ...checkDuplicate, id: false });
     }
 
     if (name === "psa" && files) {
@@ -82,11 +84,11 @@ export default function SignUpForm() {
       .get(`http://localhost:8000/auth/check-id?id=${userInfo.id}`)
       .then((res) => {
         console.log(res.data);
-        if(res.data.result === "사용 가능한 ID") {
+        if (res.data.result === "사용 가능한 ID") {
           setCheckDuplicate({ ...checkDuplicate, id: true });
-        }else {
-          alert(`${res.data.result}입니다.`)
-          if(inputRef.current.id) {
+        } else {
+          alert(`${res.data.result}입니다.`);
+          if (inputRef.current.id) {
             inputRef.current.id.value = "";
             inputRef.current.id.focus();
           }
@@ -99,16 +101,23 @@ export default function SignUpForm() {
       .get(`http://localhost:8000/auth/check-nick?nick=${userInfo.nick}`)
       .then((res) => {
         console.log(res.data);
-        if(res.data.result === "사용 가능한 닉네임") {
+        if (res.data.result === "사용 가능한 닉네임") {
           setCheckDuplicate({ ...checkDuplicate, nick: true });
-        }else {
-          alert(`${res.data.result}입니다.`)
-          if(inputRef.current.nick) {
+        } else {
+          alert(`${res.data.result}입니다.`);
+          if (inputRef.current.nick) {
             inputRef.current.nick.value = "";
             inputRef.current.nick.focus();
           }
         }
       });
+  };
+
+  const makeFormData = () => {
+    for (const [key, value] of Object.entries(userInfo)) {
+      // console.log(key, value);
+      userFromData.append(key, value);
+    }
   };
 
   const showAddSearchAddr = () => {
@@ -127,6 +136,22 @@ export default function SignUpForm() {
     }).open();
 
     inputRef.current.addr3?.focus();
+  };
+
+  const signup = () => {
+    if (validCheck()) {
+      console.log(userInfo)
+      makeFormData();
+      axios
+        .post("http://localhost:8000/auth/signup", userInfo, {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        })
+        .then((res) => {
+          console.log(res);
+
+        });
+    }
   };
 
   const validCheck = () => {
@@ -187,6 +212,7 @@ export default function SignUpForm() {
       inputRef.current.addr3.value = "";
       inputRef.current.addr3.focus();
     }
+    return true;
   };
 
   return (
@@ -211,7 +237,11 @@ export default function SignUpForm() {
             <button
               type="button"
               onClick={doubleCheckNick}
-              className={`px-3 py-2 rounded-md ${checkDuplicate.nick? "bg-primary-color text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+              className={`px-3 py-2 rounded-md ${
+                checkDuplicate.nick
+                  ? "bg-gray-200 hover:bg-gray-300"
+                  : "bg-primary-color text-white"
+              }`}
             >
               중복 확인
             </button>
@@ -236,7 +266,11 @@ export default function SignUpForm() {
             <button
               type="button"
               onClick={doubleCheckId}
-              className={`px-3 py-2 rounded-md ${checkDuplicate.id? "bg-primary-color text-white" : "bg-gray-200 hover:bg-gray-300"}`}
+              className={`px-3 py-2 rounded-md ${
+                checkDuplicate.id
+                  ? "bg-gray-200 hover:bg-gray-300"
+                  : "bg-primary-color text-white"
+              }`}
             >
               중복 확인
             </button>
@@ -379,7 +413,7 @@ export default function SignUpForm() {
         {/* 제출 버튼 */}
         <button
           // type="submit"
-          onClick={validCheck}
+          onClick={signup}
           className="w-full py-3 mt-4 bg-primary-color text-white rounded-md font-semibold "
         >
           가입하기
