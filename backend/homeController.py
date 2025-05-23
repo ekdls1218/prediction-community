@@ -15,7 +15,8 @@ def checkId(id):
     return uDao.checkId(id)
 
 @app.post("/auth/signup")
-async def signUp(psa: Optional[UploadFile] = File(None),
+async def signUp(
+    psa: Optional[UploadFile] = File(None),
     id: str = Form(),
     pw: str = Form(),
     nick: str = Form(),
@@ -23,5 +24,6 @@ async def signUp(psa: Optional[UploadFile] = File(None),
     gender: str = Form(),
     addr1: str = Form(),
     addr2: str = Form(),
-    addr3: str = Form()):
+    addr3: str = Form(),
+):
     return await uDao.signUp(id, pw, nick, birth, gender, addr1, addr2, addr3, psa)

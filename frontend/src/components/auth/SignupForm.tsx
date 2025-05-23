@@ -62,7 +62,6 @@ export default function SignUpForm() {
   const inputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const changeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // console.log(e.target.value);
     const { name, value, files } = e.target;
 
     if (name === "nick") {
@@ -78,14 +77,12 @@ export default function SignUpForm() {
     } else {
       setUserInfo({ ...userInfo, [name]: value });
     }
-    // console.log(userInfo);
   };
 
   const doubleCheckId = () => {
     axios
       .get(`http://localhost:8000/auth/check-id?id=${userInfo.id}`)
       .then((res) => {
-        console.log(res.data);
         if (res.data.result === "사용 가능한 ID") {
           setCheckDuplicate({ ...checkDuplicate, id: true });
         } else {
@@ -102,7 +99,6 @@ export default function SignUpForm() {
     axios
       .get(`http://localhost:8000/auth/check-nick?nick=${userInfo.nick}`)
       .then((res) => {
-        console.log(res.data);
         if (res.data.result === "사용 가능한 닉네임") {
           setCheckDuplicate({ ...checkDuplicate, nick: true });
         } else {
@@ -117,7 +113,6 @@ export default function SignUpForm() {
 
   const makeFormData = () => {
     for (const [key, value] of Object.entries(userInfo)) {
-      // console.log(key, value);
       userFromData.append(key, value);
     }
   };
@@ -142,7 +137,6 @@ export default function SignUpForm() {
 
   const signup = () => {
     if (validCheck()) {
-      console.log(userInfo)
       makeFormData();
       axios
         .post("http://localhost:8000/auth/signup", userInfo, {
@@ -150,7 +144,6 @@ export default function SignUpForm() {
           withCredentials: true,
         })
         .then((res) => {
-          console.log(res);
           alert(res.data.result);
           router.replace('/login')
         });
@@ -164,7 +157,6 @@ export default function SignUpForm() {
       inputRef.current.nick &&
       checkDuplicate.nick
     ) {
-      // console.log("nick");
       inputRef.current.nick.value = "";
       inputRef.current.nick.focus();
       return false;
@@ -177,7 +169,6 @@ export default function SignUpForm() {
       inputRef.current.id &&
       checkDuplicate.id
     ) {
-      // console.log("id");
       inputRef.current.id.value = "";
       inputRef.current.id.focus();
       return false;
@@ -191,7 +182,6 @@ export default function SignUpForm() {
       inputRef.current.pw &&
       inputRef.current.checkPw
     ) {
-      // console.log("pw");
       inputRef.current.pw.value = "";
       inputRef.current.checkPw.value = "";
       inputRef.current.pw.focus();
@@ -199,7 +189,6 @@ export default function SignUpForm() {
     }
     // 생년월일
     if (isEmpty(userInfo.birth) && inputRef.current.birth) {
-      // console.log("birth");
       inputRef.current.birth.value = "";
       inputRef.current.birth.focus();
       return false;
@@ -211,7 +200,6 @@ export default function SignUpForm() {
         isEmpty(userInfo.addr3)) &&
       inputRef.current.addr3
     ) {
-      // console.log("addr");
       inputRef.current.addr3.value = "";
       inputRef.current.addr3.focus();
     }
