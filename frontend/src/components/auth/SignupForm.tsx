@@ -1,4 +1,11 @@
 "use client";
+import {
+  containsHS,
+  isEmpty,
+  lessThan,
+  notContains,
+  notEqual,
+} from "@/validators";
 import Script from "next/script";
 import { useState, useRef } from "react";
 
@@ -8,7 +15,7 @@ interface User {
   pw: string;
   checkPw: string;
   birth: string;
-  gender: string | null;
+  gender: string;
   addr1: string;
   addr2: string;
   addr3: string;
@@ -35,7 +42,7 @@ export default function SignUpForm() {
     pw: "",
     checkPw: "",
     birth: "",
-    gender: null,
+    gender: gender[0].value,
     addr1: "",
     addr2: "",
     addr3: "",
@@ -45,15 +52,15 @@ export default function SignUpForm() {
   const inputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const changeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.value);
-    const { name, value, files} = e.target; 
+    // console.log(e.target.value);
+    const { name, value, files } = e.target;
 
-    if(name === "psa" && files) {
-      setUserInfo({ ...userInfo, "psa": files[0] });
-    }else {
+    if (name === "psa" && files) {
+      setUserInfo({ ...userInfo, psa: files[0] });
+    } else {
       setUserInfo({ ...userInfo, [name]: value });
     }
-    console.log(userInfo);
+    // console.log(userInfo);
   };
 
   const showAddSearchAddr = () => {
@@ -74,6 +81,64 @@ export default function SignUpForm() {
     inputRef.current.addr3?.focus();
   };
 
+  const validCheck = () => {
+    // 닉네임
+    if (
+      (isEmpty(userInfo.nick) || lessThan(userInfo.nick, 2)) &&
+      inputRef.current.nick
+    ) {
+      // console.log("nick");
+      inputRef.current.nick.value = "";
+      inputRef.current.nick.focus();
+      return false;
+    }
+    // 아이디
+    if (
+      (isEmpty(userInfo.id) ||
+        lessThan(userInfo.id, 6) ||
+        containsHS(userInfo.id)) &&
+      inputRef.current.id
+    ) {
+      // console.log("id");
+      inputRef.current.id.value = "";
+      inputRef.current.id.focus();
+      return false;
+    }
+    // 비밀번호, 비밀번호 확인
+    if (
+      (isEmpty(userInfo.pw) ||
+        lessThan(userInfo.pw, 6) ||
+        notContains(userInfo.pw, "-_.@^!") ||
+        notEqual(userInfo.pw, userInfo.checkPw)) &&
+      inputRef.current.pw &&
+      inputRef.current.checkPw
+    ) {
+      // console.log("pw");
+      inputRef.current.pw.value = "";
+      inputRef.current.checkPw.value = "";
+      inputRef.current.pw.focus();
+      return false;
+    }
+    // 생년월일
+    if(isEmpty(userInfo.birth) && inputRef.current.birth) {
+      // console.log("birth");
+      inputRef.current.birth.value = "";
+      inputRef.current.birth.focus();
+      return false;
+    }
+    // 상세주소
+    if (
+      (isEmpty(userInfo.addr1) ||
+      isEmpty(userInfo.addr2) ||
+      isEmpty(userInfo.addr3)) &&
+      inputRef.current.addr3
+    ) {
+      // console.log("addr");
+      inputRef.current.addr3.value = "";
+      inputRef.current.addr3.focus();
+    }
+  };
+
   return (
     <div className="my-10 text-gray-700">
       <h2 className="text-3xl font-bold text-center mb-8">회원가입</h2>
@@ -86,7 +151,11 @@ export default function SignUpForm() {
               type="text"
               placeholder="닉네임을 입력하세요"
               name="nick"
+              maxLength={10}
               onChange={changeInput}
+              ref={(thisInput) => {
+                inputRef.current.nick = thisInput;
+              }}
               className="flex-1 border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary-color"
             />
             <button
@@ -105,7 +174,11 @@ export default function SignUpForm() {
             <input
               type="text"
               name="id"
+              maxLength={12}
               onChange={changeInput}
+              ref={(thisInput) => {
+                inputRef.current.id = thisInput;
+              }}
               placeholder="6~12자(대/소문자, 숫자, -_.@^!)를 입력하세요"
               className="flex-1 border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary-color"
             />
@@ -124,6 +197,11 @@ export default function SignUpForm() {
           <input
             type="password"
             name="pw"
+            maxLength={12}
+            onChange={changeInput}
+            ref={(thisInput) => {
+              inputRef.current.pw = thisInput;
+            }}
             placeholder="6~12자(대/소문자, 숫자, -_.@^!)를 입력하세요"
             className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary-color"
           />
@@ -137,7 +215,11 @@ export default function SignUpForm() {
           <input
             type="password"
             name="checkPw"
+            maxLength={12}
             onChange={changeInput}
+            ref={(thisInput) => {
+              inputRef.current.checkPw = thisInput;
+            }}
             placeholder="비밀번호를 다시 입력하세요"
             className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary-color"
           />
@@ -150,6 +232,9 @@ export default function SignUpForm() {
             type="date"
             name="birth"
             onChange={changeInput}
+            ref={(thisInput) => {
+              inputRef.current.birth = thisInput;
+            }}
             className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-primary-color"
           />
         </div>
@@ -241,7 +326,8 @@ export default function SignUpForm() {
 
         {/* 제출 버튼 */}
         <button
-          type="submit"
+          // type="submit"
+          onClick={validCheck}
           className="w-full py-3 mt-4 bg-primary-color text-white rounded-md font-semibold "
         >
           가입하기
