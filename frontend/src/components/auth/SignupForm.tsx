@@ -6,6 +6,7 @@ import {
   notContains,
   notEqual,
 } from "@/validators";
+import axios from "axios";
 import Script from "next/script";
 import { useState, useRef } from "react";
 
@@ -49,11 +50,24 @@ export default function SignUpForm() {
     psa: null,
   });
 
+  const [checkDuplicate, setCheckDuplicate] = useState({
+    nick: false,
+    id: false,
+  });
+
   const inputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const changeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     // console.log(e.target.value);
     const { name, value, files } = e.target;
+    
+    if(name === "nick") {
+      setCheckDuplicate({...checkDuplicate, nick: false})
+    }
+    
+    if(name === "id") {
+      setCheckDuplicate({...checkDuplicate, id: false})
+    }
 
     if (name === "psa" && files) {
       setUserInfo({ ...userInfo, psa: files[0] });
@@ -61,6 +75,40 @@ export default function SignUpForm() {
       setUserInfo({ ...userInfo, [name]: value });
     }
     // console.log(userInfo);
+  };
+
+  const doubleCheckId = () => {
+    axios
+      .get(`http://localhost:8000/auth/check-id?id=${userInfo.id}`)
+      .then((res) => {
+        console.log(res.data);
+        if(res.data.result === "사용 가능한 ID") {
+          setCheckDuplicate({ ...checkDuplicate, id: true });
+        }else {
+          alert(`${res.data.result}입니다.`)
+          if(inputRef.current.id) {
+            inputRef.current.id.value = "";
+            inputRef.current.id.focus();
+          }
+        }
+      });
+  };
+
+  const doubleCheckNick = () => {
+    axios
+      .get(`http://localhost:8000/auth/check-nick?nick=${userInfo.nick}`)
+      .then((res) => {
+        console.log(res.data);
+        if(res.data.result === "사용 가능한 닉네임") {
+          setCheckDuplicate({ ...checkDuplicate, nick: true });
+        }else {
+          alert(`${res.data.result}입니다.`)
+          if(inputRef.current.nick) {
+            inputRef.current.nick.value = "";
+            inputRef.current.nick.focus();
+          }
+        }
+      });
   };
 
   const showAddSearchAddr = () => {
@@ -85,7 +133,8 @@ export default function SignUpForm() {
     // 닉네임
     if (
       (isEmpty(userInfo.nick) || lessThan(userInfo.nick, 2)) &&
-      inputRef.current.nick
+      inputRef.current.nick &&
+      checkDuplicate.nick
     ) {
       // console.log("nick");
       inputRef.current.nick.value = "";
@@ -97,7 +146,8 @@ export default function SignUpForm() {
       (isEmpty(userInfo.id) ||
         lessThan(userInfo.id, 6) ||
         containsHS(userInfo.id)) &&
-      inputRef.current.id
+      inputRef.current.id &&
+      checkDuplicate.id
     ) {
       // console.log("id");
       inputRef.current.id.value = "";
@@ -120,7 +170,7 @@ export default function SignUpForm() {
       return false;
     }
     // 생년월일
-    if(isEmpty(userInfo.birth) && inputRef.current.birth) {
+    if (isEmpty(userInfo.birth) && inputRef.current.birth) {
       // console.log("birth");
       inputRef.current.birth.value = "";
       inputRef.current.birth.focus();
@@ -129,8 +179,8 @@ export default function SignUpForm() {
     // 상세주소
     if (
       (isEmpty(userInfo.addr1) ||
-      isEmpty(userInfo.addr2) ||
-      isEmpty(userInfo.addr3)) &&
+        isEmpty(userInfo.addr2) ||
+        isEmpty(userInfo.addr3)) &&
       inputRef.current.addr3
     ) {
       // console.log("addr");
@@ -160,7 +210,8 @@ export default function SignUpForm() {
             />
             <button
               type="button"
-              className="px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+              onClick={doubleCheckNick}
+              className={`px-3 py-2 rounded-md ${checkDuplicate.nick? "bg-primary-color text-white" : "bg-gray-200 hover:bg-gray-300"}`}
             >
               중복 확인
             </button>
@@ -184,7 +235,8 @@ export default function SignUpForm() {
             />
             <button
               type="button"
-              className="px-3 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+              onClick={doubleCheckId}
+              className={`px-3 py-2 rounded-md ${checkDuplicate.id? "bg-primary-color text-white" : "bg-gray-200 hover:bg-gray-300"}`}
             >
               중복 확인
             </button>
