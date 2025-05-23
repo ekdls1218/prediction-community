@@ -9,6 +9,7 @@ import {
 import axios from "axios";
 import Script from "next/script";
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 interface User {
   nick: string;
@@ -32,6 +33,7 @@ interface DaumPostcodeData {
 }
 
 export default function SignUpForm() {
+  const router = useRouter();
   const gender = [
     { label: "남성", value: "male" },
     { label: "여성", value: "female" },
@@ -149,7 +151,8 @@ export default function SignUpForm() {
         })
         .then((res) => {
           console.log(res);
-
+          alert(res.data.result);
+          router.replace('/login')
         });
     }
   };
