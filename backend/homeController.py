@@ -14,6 +14,10 @@ def checkNick(nick):
 def checkId(id):
     return uDao.checkId(id)
 
+@app.post("/auth/login")
+def login(id: str = Form(), pw: str = Form()):
+    return uDao.login(id, pw)
+
 @app.post("/auth/signup")
 async def signUp(
     psa: Optional[UploadFile] = File(None),

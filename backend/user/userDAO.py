@@ -1,6 +1,8 @@
+from datetime import datetime, timedelta, timezone
 from DainLibrary.dbManager import DBManager
 from DainLibrary.fileManager import FileManager
 from fastapi.responses import JSONResponse
+import jwt
 
 
 class UserDAO:
@@ -11,6 +13,8 @@ class UserDAO:
         }
         self.filePath = "./user/psaFolder/"
         self.capacity = 30 * 1024 * 1024
+        self.jwtKey = "qwerasdfzxcv"
+        self.jwtAlgorithm = "HS256"
 
     def checkNick(self, nick):
         try:
@@ -46,6 +50,45 @@ class UserDAO:
         finally:
             DBManager.closeConCur(con, cur)
 
+    def login(self, id, pw):
+        try:
+            con, cur = DBManager.makeConCur(
+                "localhost", "root", "root", "prediction_community"
+            )
+            sql = "select * from pc_user where id='%s'" % id
+            cur.execute(sql)
+            row = cur.fetchone()
+
+            if row:
+                dbId, dbPw, dbNick, dbBirth, dbGender, dbAddr, dbPsa  = row
+                if dbPw == pw:
+                    print(dbId, dbPw, dbNick, dbBirth, dbGender, dbAddr, dbPsa)
+                    r = {
+                        "id": dbId,
+                        "pw": dbPw,
+                        "nickName": dbNick,
+                        "birth": datetime.strftime(dbBirth, "%Y-%m-%d"),
+                        "gender": dbGender,
+                        "addr": dbAddr,
+                        "psa": dbPsa,
+                        "exp": datetime.now(timezone.utc) + timedelta(seconds=10),
+                        }
+                    print(r)
+                    jwtR = jwt.encode(r, self.jwtKey, self.jwtAlgorithm)
+                    return JSONResponse({"result": "로그인 성공", "user": jwtR}, headers=self.h)
+                else:
+                    return JSONResponse(
+                        {"result": "로그인 실패(비밀번호)"}, headers=self.h
+                    )
+            else:
+                return JSONResponse(
+                    {"result": "로그인 실패(아이디)"}, headers=self.h
+                )
+        except Exception as e:
+            return JSONResponse({"result": "DB문제 발생"}, headers=self.h)
+        finally:
+            DBManager.closeConCur(con, cur)
+        
     async def signUp(self, id, pw, nick, birth, gender, addr1, addr2, addr3, psa):
         fileName = psa
         if psa != None:
