@@ -57,7 +57,7 @@ export default function SignUpForm() {
     id: false,
   });
 
-  const userFromData = new FormData();
+  const userFormData = new FormData();
 
   const inputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -113,7 +113,7 @@ export default function SignUpForm() {
 
   const makeFormData = () => {
     for (const [key, value] of Object.entries(userInfo)) {
-      userFromData.append(key, value);
+      userFormData.append(key, value);
     }
   };
 
