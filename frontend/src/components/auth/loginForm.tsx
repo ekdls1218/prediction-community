@@ -12,7 +12,6 @@ interface Login {
 export default function LoginForm() {
   const router = useRouter();
   const [loginInfo, setLoginInfo] = useState<Login>({ id: "", pw: "" });
-  //   console.log(loginInfo);
 
   const changeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -53,21 +52,20 @@ export default function LoginForm() {
           withCredentials: true,
         })
         .then((res) => {
-            console.log(res.data)
           if (res.data.result === "로그인 성공") {
-            sessionStorage.setItem("loginUser", res.data.user)
+            sessionStorage.setItem("loginUser", res.data.user);
             router.push("/");
-          }else if(res.data.result === "로그인 실패(아이디)") {
-            alert("잘못된 아이디입니다. 다시 입력해주세요.")
+          } else if (res.data.result === "로그인 실패(아이디)") {
+            alert("잘못된 아이디입니다. 다시 입력해주세요.");
             if (inputRef.current.id) {
-                inputRef.current.id.value = "";
-                inputRef.current.id.focus();
+              inputRef.current.id.value = "";
+              inputRef.current.id.focus();
             }
-          }else if(res.data.result === "로그인 실패(비밀번호)") {
-            alert("잘못된 비밀번호입니다. 다시 입력해주세요.")
+          } else if (res.data.result === "로그인 실패(비밀번호)") {
+            alert("잘못된 비밀번호입니다. 다시 입력해주세요.");
             if (inputRef.current.pw) {
-                inputRef.current.pw.value = "";
-                inputRef.current.pw.focus();
+              inputRef.current.pw.value = "";
+              inputRef.current.pw.focus();
             }
           }
         });

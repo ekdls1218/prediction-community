@@ -60,9 +60,8 @@ class UserDAO:
             row = cur.fetchone()
 
             if row:
-                dbId, dbPw, dbNick, dbBirth, dbGender, dbAddr, dbPsa  = row
+                dbId, dbPw, dbNick, dbBirth, dbGender, dbAddr, dbPsa = row
                 if dbPw == pw:
-                    print(dbId, dbPw, dbNick, dbBirth, dbGender, dbAddr, dbPsa)
                     r = {
                         "id": dbId,
                         "pw": dbPw,
@@ -72,23 +71,22 @@ class UserDAO:
                         "addr": dbAddr,
                         "psa": dbPsa,
                         "exp": datetime.now(timezone.utc) + timedelta(seconds=10),
-                        }
-                    print(r)
+                    }
                     jwtR = jwt.encode(r, self.jwtKey, self.jwtAlgorithm)
-                    return JSONResponse({"result": "로그인 성공", "user": jwtR}, headers=self.h)
+                    return JSONResponse(
+                        {"result": "로그인 성공", "user": jwtR}, headers=self.h
+                    )
                 else:
                     return JSONResponse(
                         {"result": "로그인 실패(비밀번호)"}, headers=self.h
                     )
             else:
-                return JSONResponse(
-                    {"result": "로그인 실패(아이디)"}, headers=self.h
-                )
+                return JSONResponse({"result": "로그인 실패(아이디)"}, headers=self.h)
         except Exception as e:
             return JSONResponse({"result": "DB문제 발생"}, headers=self.h)
         finally:
             DBManager.closeConCur(con, cur)
-        
+
     async def signUp(self, id, pw, nick, birth, gender, addr1, addr2, addr3, psa):
         fileName = psa
         if psa != None:
@@ -103,7 +101,7 @@ class UserDAO:
                 return JSONResponse(
                     {"result": id + "님 가입 실패(파일)"}, headers=self.h
                 )
-            
+
         try:
             addr = addr2 + "!" + addr3 + "!" + addr1
             con, cur = DBManager.makeConCur(
