@@ -15,6 +15,7 @@ interface PostForm {
   selectedCategory: number;
   title: string;
   deadline: string;
+  userInfo: string | null;
 }
 
 export default function PostWriteModal({ onClose }: PostWriteModalProps) {
@@ -28,6 +29,7 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
     selectedCategory: 1,
     title: "",
     deadline: "",
+    userInfo: sessionStorage.getItem("loginUser")
   });
 
   const changeForm = (
