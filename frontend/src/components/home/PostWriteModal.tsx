@@ -1,27 +1,31 @@
 "use client";
 
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface PostWriteModalProps {
   onClose: () => void;
 }
 
+interface Category {
+  id: number;
+  name: string;
+}
 interface PostForm {
-  selectedCategory: string;
+  selectedCategory: number;
   title: string;
   deadline: string;
 }
 
 export default function PostWriteModal({ onClose }: PostWriteModalProps) {
-  const categories = ["카테고리1", "카테고리2", "카테고리3"];
+  const [categories, setCategories] = useState<Category[]>([]);
   const yesterday = new Date(
     Date.now() - new Date().getTimezoneOffset() * 60000
   )
     .toISOString()
     .split("T")[0];
   const [postForm, setPostForm] = useState<PostForm>({
-    selectedCategory: categories[0],
+    selectedCategory: 1,
     title: "",
     deadline: "",
   });
@@ -35,12 +39,23 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    console.log(postForm)
     axios.post("http://localhost:8000/predictions", postForm).then((res) => {
       console.log(res);
       onClose();
     });
   };
+
+  useEffect(() => {
+    const getCategories = async () => {
+      await axios.get<Category[]>("http://localhost:8000/predictions/category").then((res) => {
+        console.log(res.data)
+        const sorted = res.data.sort((a, b) => a.id - b.id);
+        setCategories(sorted);
+      })
+    };
+    getCategories();
+  }, []);
 
   return (
     <div
@@ -58,18 +73,18 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
             <div className="flex flex-wrap gap-2">
               {categories.map((cat) => (
                 <button
-                  key={cat}
+                  key={cat.id}
                   type="button"
                   onClick={() =>
-                    setPostForm({ ...postForm, selectedCategory: cat })
+                    setPostForm({ ...postForm, selectedCategory: cat.id })
                   }
                   className={`px-3 py-1.5 rounded-full border text-sm transition ${
-                    postForm.selectedCategory === cat
+                    postForm.selectedCategory === cat.id
                       ? "bg-primary-color text-white border-primary-color"
                       : "bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100"
                   }`}
                 >
-                  {cat}
+                  {cat.name}
                 </button>
               ))}
             </div>
