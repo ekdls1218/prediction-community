@@ -20,7 +20,7 @@ uDao = UserDAO()
 pDao = PredictionDAO()
 
 class Prediction(BaseModel):
-    selectedCategory: str
+    selectedCategory: int
     title: str
     deadline: str
 
@@ -53,3 +53,7 @@ async def signUp(
 @app.post("/predictions")
 async def createPrediction(prediction: Prediction):
     return await pDao.createPrediction(prediction.selectedCategory, prediction.title, prediction.deadline)
+
+@app.get("/predictions/category")
+def getCategory():
+    return pDao.getCategory()
