@@ -23,6 +23,7 @@ class Prediction(BaseModel):
     selectedCategory: int
     title: str
     deadline: str
+    userInfo: str
 
 @app.get("/auth/check-nick")
 def checkNick(nick):
@@ -52,7 +53,7 @@ async def signUp(
 
 @app.post("/predictions")
 async def createPrediction(prediction: Prediction):
-    return await pDao.createPrediction(prediction.selectedCategory, prediction.title, prediction.deadline)
+    return await pDao.createPrediction(prediction.selectedCategory, prediction.title, prediction.deadline, prediction.userInfo)
 
 @app.get("/predictions/category")
 def getCategory():
