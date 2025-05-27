@@ -1,7 +1,13 @@
+import MainBoard from "@/components/home/mainBoard";
+import SideBoardLeft from "@/components/home/SideBoardLeft";
+import SideBoardRight from "@/components/home/SideBoardRight";
+
 export default function HomePage() {
   return (
     <div>
-      메인 홈 페이지
+      <SideBoardLeft />
+      <MainBoard />
+      <SideBoardRight />
     </div>
   );
 }
