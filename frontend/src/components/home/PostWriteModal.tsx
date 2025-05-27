@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 
 interface PostWriteModalProps {
@@ -34,7 +35,11 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(postForm);
+
+    axios.post("http://localhost:8000/predictions", postForm).then((res) => {
+      console.log(res);
+      onClose();
+    });
   };
 
   return (
