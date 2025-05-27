@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import PostList from "./PostList";
 import PostWriteModal from "./PostWriteModal";
 
 export default function MainBoard() {
@@ -11,6 +12,7 @@ export default function MainBoard() {
                 <h1 className="text-2xl font-bold text-gray-900 mr-4">예측하기</h1>
                 <button onClick={() => setIsOpenModal(true)} className="bg-primary-color text-white text-sm font-semibold py-1.5 px-3 rounded-md">새 예측 작성</button>
             </div>
+            <PostList />
             {isOpenModal && <PostWriteModal onClose={() => setIsOpenModal(false)}/>}
         </div>
     );
