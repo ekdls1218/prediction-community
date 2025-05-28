@@ -4,7 +4,7 @@ import SideBoardRight from "@/components/home/SideBoardRight";
 
 export default function HomePage() {
   return (
-    <div className="flex gap-6 w-full h-screen mt-4 px-6 py-4">
+    <div className="flex gap-6 w-full h-full px-6 py-4">
       <SideBoardLeft />
       <MainBoard />
       <SideBoardRight />
