@@ -50,7 +50,7 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
 
   useEffect(() => {
     const getCategories = async () => {
-      await axios.get<Category[]>("http://localhost:8000/predictions/category").then((res) => {
+      await axios.get<Category[]>("http://localhost:8000/category").then((res) => {
         console.log(res.data)
         const sorted = res.data.sort((a, b) => a.id - b.id);
         setCategories(sorted);
