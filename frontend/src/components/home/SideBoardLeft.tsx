@@ -1,11 +1,11 @@
 "use client";
 
 import { setCategory } from "@/redux/categorySlice";
-import { RootState } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function SideBoardLeft() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>()
   const { categories, selectedCategory } = useSelector(
     (state: RootState) => state.category
   );
