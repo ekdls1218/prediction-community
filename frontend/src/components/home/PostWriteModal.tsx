@@ -1,15 +1,12 @@
 "use client";
 
+import { RootState } from "@/redux/store";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 interface PostWriteModalProps {
   onClose: () => void;
-}
-
-interface Category {
-  id: number;
-  name: string;
 }
 interface PostForm {
   selectedCategory: number;
@@ -19,14 +16,14 @@ interface PostForm {
 }
 
 export default function PostWriteModal({ onClose }: PostWriteModalProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const categories = useSelector((state:RootState) => state.category.categories)
   const yesterday = new Date(
     Date.now() - new Date().getTimezoneOffset() * 60000
   )
     .toISOString()
     .split("T")[0];
   const [postForm, setPostForm] = useState<PostForm>({
-    selectedCategory: 1,
+    selectedCategory: categories[0].id,
     title: "",
     deadline: "",
     userInfo: sessionStorage.getItem("loginUser")
@@ -47,17 +44,6 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
       onClose();
     });
   };
-
-  useEffect(() => {
-    const getCategories = async () => {
-      await axios.get<Category[]>("http://localhost:8000/category").then((res) => {
-        console.log(res.data)
-        const sorted = res.data.sort((a, b) => a.id - b.id);
-        setCategories(sorted);
-      })
-    };
-    getCategories();
-  }, []);
 
   return (
     <div

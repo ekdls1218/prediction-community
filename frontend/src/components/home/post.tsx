@@ -78,7 +78,7 @@ export default function Post({ post, userVotes }: PostProps) {
 
   useEffect(() => {
     const myVote = userVotes.find((v) => v.post_id === post.id);
-    console.log(userVotes, myVote);
+    // console.log(userVotes, myVote);
     if (myVote) {
       setSelected(myVote.pick);
       axios

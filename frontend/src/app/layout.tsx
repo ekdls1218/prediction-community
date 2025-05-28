@@ -1,6 +1,9 @@
+"use client";
 import Header from "@/components/Header"
 import localFont from "next/font/local"
 import "./globals.css"
+import { Provider } from "react-redux";
+import { store } from "@/redux/store";
 
 const pyeongChangPeace = localFont({
   src: [
@@ -23,10 +26,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" className={pyeongChangPeace.variable}>
       <body >
-        <header className="shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
-          <Header />
-        </header>
-        <main className="h-[calc(100vh-80px)] overflow-hidden">{children}</main>
+        <Provider store={store}>
+          <header className="shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
+            <Header />
+          </header>
+          <main className="h-[calc(100vh-80px)] overflow-hidden">{children}</main>
+        </Provider>
       </body>
     </html>
   );

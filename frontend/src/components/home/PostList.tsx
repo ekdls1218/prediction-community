@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Post from "./Post";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface Post {
   id: number;
@@ -15,7 +17,13 @@ interface Post {
 
 export default function PostList() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [userVotes, setUserVotes] = useState<{post_id: number, pick: number}[]>([]);
+  const [userVotes, setUserVotes] = useState<
+    { post_id: number; pick: number }[]
+  >([]);
+  const seletedCategory = useSelector(
+    (state: RootState) => state.category.selectedCategory
+  );
+
   useEffect(() => {
     axios.get("http://localhost:8000/predictions").then((res) => {
       setPosts(res.data);
@@ -31,10 +39,15 @@ export default function PostList() {
         setUserVotes(res.data);
       });
   }, []);
+
+  const filteredPosts = seletedCategory
+    ? posts.filter((p) => p.category === seletedCategory)
+    : posts;
+
   return (
     <div>
-      {posts.map((post) => (
-        <Post key={post.id} post={post} userVotes={userVotes}/>
+      {filteredPosts.map((post) => (
+        <Post key={post.id} post={post} userVotes={userVotes} />
       ))}
     </div>
   );

@@ -1,29 +1,15 @@
 "use client";
 
-import axios from "axios";
-import { useEffect, useState } from "react";
-
-interface Category {
-  id: number;
-  name: string;
-}
+import { setCategory } from "@/redux/categorySlice";
+import { RootState } from "@/redux/store";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function SideBoardLeft() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("전체");
+  const dispatch = useDispatch();
+  const { categories, selectedCategory } = useSelector(
+    (state: RootState) => state.category
+  );
 
-  useEffect(() => {
-    const getCategories = async () => {
-      await axios
-        .get<Category[]>("http://localhost:8000/category")
-        .then((res) => {
-          //   console.log(res.data);
-          const sorted = res.data.sort((a, b) => a.id - b.id);
-          setCategories(sorted);
-        });
-    };
-    getCategories();
-  }, []);
   return (
     <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-4">
       <div>
@@ -32,12 +18,21 @@ export default function SideBoardLeft() {
         </h3>
         {categories.map((cate) => {
           return (
-            <div
+            <button
               key={cate.id}
-              className="border-2 border-gray-100 shadow-sm rounded-md px-2 py-1 bg-white mb-2 hover:border-primary-color transition-colors"
+              onClick={() =>
+                selectedCategory === cate.id
+                  ? dispatch(setCategory(null))
+                  : dispatch(setCategory(cate.id))
+              }
+              className={`border-2 shadow-sm rounded-md w-full px-2 py-1 mb-2 hover:border-primary-color transition-colors ${
+                selectedCategory === cate.id
+                  ? "bg-primary-color text-white border-primary-color"
+                  : "bg-white text-gray-800 border-gray-100"
+              } `}
             >
               {cate.name}
-            </div>
+            </button>
           );
         })}
       </div>
