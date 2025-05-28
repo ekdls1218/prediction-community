@@ -55,6 +55,10 @@ async def signUp(
 async def createPrediction(prediction: Prediction):
     return await pDao.createPrediction(prediction.selectedCategory, prediction.title, prediction.deadline, prediction.userInfo)
 
+@app.get("/predictions")
+async def getPredictions():
+    return await pDao.getPredictions()
+
 @app.get("/predictions/category")
 def getCategory():
     return pDao.getCategory()
