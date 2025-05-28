@@ -63,7 +63,7 @@ class PredictionDAO:
                 "localhost", "root", "root", "prediction_community"
             )
 
-            sql = "select * from pc_category"
+            sql = "select * from pc_category order by id"
 
             cur.execute(sql)
 
