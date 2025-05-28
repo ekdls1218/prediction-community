@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, Form, UploadFile, File
+from fastapi import Depends, FastAPI, Form, UploadFile, File
 from user.userDAO import UserDAO
 from prediction.predictionDAO import PredictionDAO
 from pydantic import BaseModel
@@ -24,6 +24,11 @@ class Prediction(BaseModel):
     title: str
     deadline: str
     userInfo: str
+
+class Vote(BaseModel):
+    vote: int
+    userInfo:str
+    postId:int
 
 @app.get("/auth/check-nick")
 def checkNick(nick):
@@ -59,6 +64,21 @@ async def createPrediction(prediction: Prediction):
 async def getPredictions():
     return await pDao.getPredictions()
 
-@app.get("/predictions/category")
+@app.get("/category")
 def getCategory():
     return pDao.getCategory()
+
+@app.post("/predictions/vote")
+async def addVote(v: Vote):
+    print("ok")
+    return await pDao.addVote(v.vote, v.userInfo, v.postId)
+
+@app.get("/predictions/{post_id}/vote")
+def getVote(post_id:int):
+    return pDao.getVote(post_id)
+
+
+@app.get("/predictions/votes")
+def getUserVotes(user_id:str = Depends(pDao.getUserId2)):
+    print(user_id)
+    return pDao.getUserVotes(user_id)
