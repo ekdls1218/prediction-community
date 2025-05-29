@@ -70,7 +70,7 @@ class UserDAO:
                         "gender": dbGender,
                         "addr": dbAddr,
                         "psa": dbPsa,
-                        "exp": datetime.now(timezone.utc) + timedelta(seconds=10),
+                        "exp": datetime.now(timezone.utc) + timedelta(seconds=36000),
                     }
                     jwtR = jwt.encode(r, self.jwtKey, self.jwtAlgorithm)
                     return JSONResponse(
