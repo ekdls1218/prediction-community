@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
+import CommentChatModal from "./CommentChatModal";
 
 interface Post {
   id: number;
@@ -46,6 +47,7 @@ export default function Post({ post, userVotes }: PostProps) {
     true_rate: 0,
     false_rate: 0,
   });
+  const [isOpenModal, setIsOpenModal] = useState(false);
   const changeButtonColor = (vote: number, color: string) => {
     if (selected === 2) {
       return color === "green"
@@ -110,7 +112,7 @@ export default function Post({ post, userVotes }: PostProps) {
         </div>
       </div>
 
-      <div className="text-sm text-gray-400 mb-4">💬 댓글 개수</div>
+      <div onClick={() => setIsOpenModal(true)} className="text-sm text-gray-400 mb-4">💬 댓글 개수</div>
 
       <div className="flex justify-between gap-3">
         {buttons.map((btn) => {
@@ -142,6 +144,7 @@ export default function Post({ post, userVotes }: PostProps) {
           );
         })}
       </div>
+      {isOpenModal && <CommentChatModal onClose={() => setIsOpenModal(false)}/>}
     </div>
   );
 }
