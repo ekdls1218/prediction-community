@@ -2,6 +2,7 @@ from typing import Optional
 from fastapi import Depends, FastAPI, Form, UploadFile, File
 from user.userDAO import UserDAO
 from prediction.predictionDAO import PredictionDAO
+from comment.commentDAO import CommentDAO
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,6 +19,7 @@ app.add_middleware(
 
 uDao = UserDAO()
 pDao = PredictionDAO()
+cDao = CommentDAO()
 
 class Prediction(BaseModel):
     selectedCategory: int
@@ -29,6 +31,11 @@ class Vote(BaseModel):
     vote: int
     userInfo:str
     postId:int
+
+class Comment(BaseModel):
+    content: str
+    userInfo: str
+    postId: int
 
 @app.get("/auth/check-nick")
 def checkNick(nick):
@@ -82,3 +89,12 @@ def getVote(post_id:int):
 def getUserVotes(user_id:str = Depends(pDao.getUserId2)):
     print(user_id)
     return pDao.getUserVotes(user_id)
+
+@app.post("/comments")
+async def addComment(c:Comment):
+    return await cDao.addComment(c.content, c.userInfo, c.postId)
+
+@app.get("/comments/{post_id}")
+def getComment(post_id:int):
+    print(post_id)
+    return cDao.getComment(post_id)
