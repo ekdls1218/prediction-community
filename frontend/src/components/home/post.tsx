@@ -27,6 +27,7 @@ interface VoteInfo {
 }
 
 export default function Post({ post, userVotes }: PostProps) {
+  // console.log(post)
   const getDday = (deadline: string) => {
     const today = new Date();
     const target = new Date(deadline);
@@ -144,7 +145,7 @@ export default function Post({ post, userVotes }: PostProps) {
           );
         })}
       </div>
-      {isOpenModal && <CommentChatModal onClose={() => setIsOpenModal(false)}/>}
+      {isOpenModal && <CommentChatModal post={post} onClose={() => setIsOpenModal(false)}/>}
     </div>
   );
 }

@@ -16,19 +16,13 @@ interface Post {
 }
 
 export default function PostList() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [userVotes, setUserVotes] = useState<
-    { post_id: number; pick: number }[]
-  >([]);
+  const posts = useSelector((stste: RootState) => stste.prediction.post)
+  const [userVotes, setUserVotes] = useState<{ post_id: number; pick: number }[]>([]);
   const seletedCategory = useSelector(
     (state: RootState) => state.category.selectedCategory
   );
 
   useEffect(() => {
-    axios.get("http://localhost:8000/predictions").then((res) => {
-      setPosts(res.data);
-    });
-
     axios
       .get("http://localhost:8000/predictions/votes", {
         headers: {
