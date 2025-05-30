@@ -3,6 +3,7 @@ from fastapi import Depends, FastAPI, Form, UploadFile, File
 from user.userDAO import UserDAO
 from prediction.predictionDAO import PredictionDAO
 from comment.commentDAO import CommentDAO
+from my.MyDAO import MyDAO
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -20,6 +21,7 @@ app.add_middleware(
 uDao = UserDAO()
 pDao = PredictionDAO()
 cDao = CommentDAO()
+mDao = MyDAO()
 
 class Prediction(BaseModel):
     selectedCategory: int
@@ -36,6 +38,10 @@ class Comment(BaseModel):
     content: str
     userInfo: str
     postId: int
+
+class Result(BaseModel):
+    post_id: int
+    result: int
 
 @app.get("/auth/check-nick")
 def checkNick(nick):
@@ -89,10 +95,8 @@ async def addVote(v: Vote):
 def getVote(post_id:int):
     return pDao.getVote(post_id)
 
-
 @app.get("/predictions/votes")
 def getUserVotes(user_id:str = Depends(pDao.getUserId2)):
-    print(user_id)
     return pDao.getUserVotes(user_id)
 
 @app.post("/comments")
@@ -101,5 +105,25 @@ async def addComment(c:Comment):
 
 @app.get("/comments/{post_id}")
 def getComment(post_id:int):
-    print(post_id)
     return cDao.getComment(post_id)
+
+@app.get("/my/stats/all-stat")
+def getAllStat(user_id:str = Depends(mDao.getUserId)):
+    return mDao.getAllStat(user_id)
+
+@app.get("/my/stats/category-stat")
+def getCategoryStat(user_id:str = Depends(mDao.getUserId)):
+    return mDao.getCategoryStat(user_id)
+
+@app.get("/my/prediction/votes")
+def getVotePosts(user_id:str = Depends(mDao.getUserId)):
+    return mDao.getVotePosts(user_id)
+
+@app.get("/my/prediction")
+def getMyPosts(user_id:str = Depends(mDao.getUserId)):
+    return mDao.getMyPosts(user_id)
+
+@app.post("/my/prediction/result")
+def addResult(r:Result):
+    print(r.post_id, r.result)
+    return mDao.addResult(r.post_id, r.result)
