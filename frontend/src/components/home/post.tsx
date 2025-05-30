@@ -3,6 +3,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import CommentChatModal from "./CommentChatModal";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface Post {
   id: number;
@@ -28,6 +30,7 @@ interface VoteInfo {
 
 export default function Post({ post, userVotes }: PostProps) {
   // console.log(post)
+  const user = useSelector((state: RootState) => state.user);
   const getDday = (deadline: string) => {
     const today = new Date();
     const target = new Date(deadline);
@@ -80,6 +83,8 @@ export default function Post({ post, userVotes }: PostProps) {
   };
 
   useEffect(() => {
+    if (!user.isLogin) return;
+
     const myVote = userVotes.find((v) => v.post_id === post.id);
     // console.log(userVotes, myVote);
     if (myVote) {
@@ -113,7 +118,12 @@ export default function Post({ post, userVotes }: PostProps) {
         </div>
       </div>
 
-      <div onClick={() => setIsOpenModal(true)} className="text-sm text-gray-400 mb-4">💬 댓글 개수</div>
+      <div
+        onClick={() => setIsOpenModal(true)}
+        className="text-sm text-gray-400 mb-4"
+      >
+        💬 댓글 개수
+      </div>
 
       <div className="flex justify-between gap-3">
         {buttons.map((btn) => {
@@ -145,7 +155,9 @@ export default function Post({ post, userVotes }: PostProps) {
           );
         })}
       </div>
-      {isOpenModal && <CommentChatModal post={post} onClose={() => setIsOpenModal(false)}/>}
+      {isOpenModal && (
+        <CommentChatModal post={post} onClose={() => setIsOpenModal(false)} />
+      )}
     </div>
   );
 }
