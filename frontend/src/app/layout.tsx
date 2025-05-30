@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { setCategories } from "@/redux/categorySlice";
 import { setPrediction } from "@/redux/predictionSlice";
+import { clearUser, setUser } from "@/redux/userSlice";
 
 const pyeongChangPeace = localFont({
   src: [
@@ -28,6 +29,19 @@ const pyeongChangPeace = localFont({
 
 function InitDataLoader () {
   const dispatch = useDispatch<AppDispatch>();
+  
+  useEffect(() => {
+    const token = sessionStorage.getItem("loginUser");
+    if (!token) return;
+
+    axios
+      .get("http://localhost:8000/auth/check-login", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {dispatch(setUser({...res.data, "isLogin":true}));})
+      .catch(() => {
+        dispatch(clearUser());
+        sessionStorage.removeItem("loginUser");
+      });
+  }, []);
   
   useEffect(() => {
     axios.get("http://localhost:8000/category").then((res) => {

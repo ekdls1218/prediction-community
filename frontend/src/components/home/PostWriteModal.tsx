@@ -1,9 +1,10 @@
 "use client";
 
-import { RootState } from "@/redux/store";
+import { setPrediction } from "@/redux/predictionSlice";
+import { AppDispatch, RootState } from "@/redux/store";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface PostWriteModalProps {
   onClose: () => void;
@@ -16,6 +17,7 @@ interface PostForm {
 }
 
 export default function PostWriteModal({ onClose }: PostWriteModalProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const categories = useSelector((state:RootState) => state.category.categories)
   const yesterday = new Date(
     Date.now() - new Date().getTimezoneOffset() * 60000
@@ -36,11 +38,14 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
     setPostForm({ ...postForm, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log(postForm)
-    axios.post("http://localhost:8000/predictions", postForm).then((res) => {
+    await axios.post("http://localhost:8000/predictions", postForm).then((res) => {
       console.log(res);
+      axios.get("http://localhost:8000/predictions").then((res2) => {
+        dispatch(setPrediction(res2.data));
+      });
       onClose();
     });
   };

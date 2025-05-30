@@ -1,8 +1,11 @@
 "use client";
+import { AppDispatch } from "@/redux/store";
+import { setUser } from "@/redux/userSlice";
 import { isEmpty } from "@/validators";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 
 interface Login {
   id: string;
@@ -11,6 +14,7 @@ interface Login {
 
 export default function LoginForm() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [loginInfo, setLoginInfo] = useState<Login>({ id: "", pw: "" });
 
   const changeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,7 +57,9 @@ export default function LoginForm() {
         })
         .then((res) => {
           if (res.data.result === "로그인 성공") {
-            sessionStorage.setItem("loginUser", res.data.user);
+            // console.log(res.data)
+            sessionStorage.setItem("loginUser", res.data.token);
+            dispatch(setUser({"id":res.data.id, "nick":res.data.nick, "psa": res.data.psa, "token": res.data.token, "isLogin": true}));
             router.push("/");
           } else if (res.data.result === "로그인 실패(아이디)") {
             alert("잘못된 아이디입니다. 다시 입력해주세요.");
