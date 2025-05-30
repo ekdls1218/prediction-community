@@ -38,18 +38,23 @@ class PredictionDAO:
                 "localhost", "root", "root", "prediction_community"
             )
 
-            sql = (
+            sql_post = (
                 "insert into pc_post (title, deadline, category_id, user_id) values('%s', '%s', '%d', '%s')"
                 % (title, deadline, category, userId)
             )
 
-            cur.execute(sql)
+            cur.execute(sql_post)
 
             if cur.rowcount == 1:
-                print("성공")
-                con.commit()
+                post_id = cur.lastrowid
+                print(post_id)
+                sql_result = "insert into pc_result (post_id) values(%s)"
+                cur.execute(sql_result, (post_id,))
 
-            return {"result": "성공"}
+                if cur.rowcount == 1:
+                    con.commit()
+
+                    return {"result": "성공"}
 
         except Exception as e:
             print(e)
@@ -109,7 +114,7 @@ class PredictionDAO:
         finally:
             DBManager.closeConCur(con, cur)
 
-    async def addVote(self, vote, userInfo, postId):
+    async def addVote(self, vote, userInfo, postId, categoryId):
         userId = self.getUserId(userInfo)
 
         try:
@@ -117,19 +122,22 @@ class PredictionDAO:
                 "localhost", "root", "root", "prediction_community"
             )
 
-            sql = "insert into pc_vote values ('%d', '%s', '%d')" % (
+            sql_vote = "insert into pc_vote (pick, user_id, post_id) values ('%d', '%s', '%d')" % (
                 vote,
                 userId,
                 postId,
             )
 
-            cur.execute(sql)
+            cur.execute(sql_vote)
 
             if cur.rowcount == 1:
-                print("성공")
-                con.commit()
+                sql_stats = "update pc_stats set total_count = total_count + 1 where user_id = %s and category_id = %s"
+                cur.execute(sql_stats, (userId, categoryId))
+                
+                if cur.rowcount >= 1:
+                    con.commit()
 
-            return {"result": "성공"}
+                    return {"result": "성공"}
 
         except Exception as e:
             print(e)
@@ -170,7 +178,7 @@ class PredictionDAO:
             con, cur = DBManager.makeConCur(
                 "localhost", "root", "root", "prediction_community"
             )
-            print(userId)
+
             sql = "select post_id, pick from pc_vote where user_id = '%s';" %(userId)
 
             cur.execute(sql)
