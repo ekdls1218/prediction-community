@@ -207,7 +207,7 @@ export default function SignUpForm() {
   };
 
   return (
-    <div className="my-10 text-gray-700">
+    <div className="h-[calc(100vh-120px)] overflow-y-auto my-5 px-5 pb-10 text-gray-700 scrollbar-hide">
       <h2 className="text-3xl font-bold text-center mb-8">회원가입</h2>
       <div className="space-y-5">
         {/* 닉네임 */}
