@@ -33,6 +33,7 @@ class Vote(BaseModel):
     vote: int
     userInfo:str
     postId:int
+    category_id: int
 
 class Comment(BaseModel):
     content: str
@@ -74,6 +75,10 @@ async def signUp(
 ):
     return await uDao.signUp(id, pw, nick, birth, gender, addr1, addr2, addr3, psa)
 
+@app.post("/auth/delete")
+def deleteUser(id:str = Depends(uDao.getUserId)):
+    return uDao.deleteUser(id)
+
 @app.post("/predictions")
 async def createPrediction(prediction: Prediction):
     return await pDao.createPrediction(prediction.selectedCategory, prediction.title, prediction.deadline, prediction.userInfo)
@@ -89,7 +94,7 @@ def getCategory():
 @app.post("/predictions/vote")
 async def addVote(v: Vote):
     print("ok")
-    return await pDao.addVote(v.vote, v.userInfo, v.postId)
+    return await pDao.addVote(v.vote, v.userInfo, v.postId, v.category_id)
 
 @app.get("/predictions/{post_id}/vote")
 def getVote(post_id:int):
@@ -127,3 +132,7 @@ def getMyPosts(user_id:str = Depends(mDao.getUserId)):
 def addResult(r:Result):
     print(r.post_id, r.result)
     return mDao.addResult(r.post_id, r.result)
+
+@app.get("/stats/update")
+def updateAccuracy(user_id:str = Depends(mDao.getUserId)):
+    return mDao.updateAccuracy(user_id)
