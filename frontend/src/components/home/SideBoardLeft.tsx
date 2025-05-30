@@ -2,7 +2,15 @@
 
 import { setCategory } from "@/redux/categorySlice";
 import { AppDispatch, RootState } from "@/redux/store";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
+interface AllStat {
+  allCorrect: number;
+  allTotal: number;
+  allAccuracy: number;
+}
 
 export default function SideBoardLeft() {
   const dispatch = useDispatch<AppDispatch>();
@@ -10,6 +18,21 @@ export default function SideBoardLeft() {
   const { categories, selectedCategory } = useSelector(
     (state: RootState) => state.category
   );
+  const [allStats, setAllStats] = useState<AllStat>({
+      allCorrect: 0,
+      allTotal: 0,
+      allAccuracy: 0,
+    });
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8000/my/stats/all-stat", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      })
+      .then((res) => {
+        setAllStats(res.data);
+      });
+  }, [])
 
   return (
     <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-4">
@@ -44,12 +67,12 @@ export default function SideBoardLeft() {
           </h3>
           <div className="border-2 border-gray-100 text-center shadow-sm rounded-md px-2 py-2 bg-white mb-2">
             <span className="text-primary-color text-xl font-bold mb-2">
-              79%
+              {allStats.allAccuracy}%
             </span>
             <span className="block text-xs text-gray">전체 적중률</span>
           </div>
           <div className="border-2 border-gray-100 text-center shadow-sm rounded-md px-2 py-2 bg-white mb-2">
-            <span className="text-primary-color text-xl font-bold mb-2">5</span>
+            <span className="text-primary-color text-xl font-bold mb-2">{allStats.allTotal}</span>
             <span className="block text-xs text-gray">참여 예측 수</span>
           </div>
         </div>
