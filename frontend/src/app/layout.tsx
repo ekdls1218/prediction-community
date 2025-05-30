@@ -41,6 +41,11 @@ function InitDataLoader () {
         dispatch(clearUser());
         sessionStorage.removeItem("loginUser");
       });
+    
+    axios
+      .get("http://localhost:8000/stats/update", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
   }, []);
   
   useEffect(() => {
