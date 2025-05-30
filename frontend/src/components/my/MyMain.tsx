@@ -1,16 +1,18 @@
 "use client";
 
-import { RootState } from "@/redux/store";
+import { AppDispatch, RootState } from "@/redux/store";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import CategoryPieChart from "./CategoryPieChart";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import axios from "axios";
+import { clearUser } from "@/redux/userSlice";
 
 interface VotePrediction {
   post_id: number;
   title: string;
+  deadline: string;
   pick: boolean;
   result: boolean | null;
   category_name: string;
@@ -37,6 +39,8 @@ interface CategoryStats {
 
 export default function MyMain() {
   const router = useRouter();
+  const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user);
   const [votePredictions, setVotePredictions] = useState<VotePrediction[]>([]);
   const [myPredictions, setMyPredictions] = useState<MyPrediction[]>([]);
@@ -46,18 +50,47 @@ export default function MyMain() {
     allAccuracy: 0,
   });
   const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
-  const choice = { 0: "틀릴 듯!", 1: "맞을 것 같아!"};
+  const choice = { 0: "틀릴 듯!", 1: "맞을 것 같아!" };
 
-  const handleResultPick = async(postId: number, value:number) => {
-    console.log(postId, value)
-    await axios.post(("http://localhost:8000/my/prediction/result"), {post_id:postId, result: value}).then((res) => {
-      console.log(res.data);
-      setMyPredictions((p) => p.map(m => m.post_id === postId ? {...m, result:Boolean(value)} : m))
-    })
-  }
+  const handleResultPick = async (postId: number, value: number) => {
+    console.log(postId, value);
+    await axios
+      .post("http://localhost:8000/my/prediction/result", {
+        post_id: postId,
+        result: value,
+      })
+      .then((res) => {
+        console.log(res.data);
+        setMyPredictions((p) =>
+          p.map((m) =>
+            m.post_id === postId ? { ...m, result: Boolean(value) } : m
+          )
+        );
+      });
+  };
+
+  const handleDeleteUser = () => {
+    if (window.confirm("정말 탈퇴하시겠습니까?")) {
+      axios
+        .post(
+          "http://localhost:8000/auth/delete",
+          {},
+          { headers: { Authorization: `Bearer ${user.token}` } }
+        )
+        .then((res) => {
+          console.log(res.data);
+          if (res.data.result === "성공") {
+            dispatch(clearUser());
+            sessionStorage.removeItem("loginUser");
+            router.push("/login");
+          }
+        });
+    }
+  };
 
   useEffect(() => {
     if (!user.id) return;
+
     axios
       .get("http://localhost:8000/my/stats/all-stat", {
         headers: { Authorization: `Bearer ${user.token}` },
@@ -71,7 +104,7 @@ export default function MyMain() {
         headers: { Authorization: `Bearer ${user.token}` },
       })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         setCategoryStats(res.data);
       });
 
@@ -83,7 +116,7 @@ export default function MyMain() {
         console.log(res.data);
         setVotePredictions(res.data);
       });
-  }, [user.id]);
+  }, [user.id, pathname]);
 
   useEffect(() => {
     if (!user.id) return;
@@ -93,11 +126,10 @@ export default function MyMain() {
         headers: { Authorization: `Bearer ${user.token}` },
       })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         setMyPredictions(res.data);
       });
-  }, [user.id, setMyPredictions])
-
+  }, [user.id, setMyPredictions, pathname]);
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto scrollbar-hide pr-2 mb-10">
@@ -194,14 +226,18 @@ export default function MyMain() {
                 </h3>
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    p.result === null
+                    p.result === null || new Date(p.deadline) > new Date()
                       ? "bg-amber-100 text-amber-700"
                       : p.result
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-rose-100 text-rose-700"
                   }`}
                 >
-                  {p.result === null ? "진행중" : p.result ? "적중" : "오답"}
+                  {p.result === null || new Date(p.deadline) > new Date()
+                    ? "진행중"
+                    : p.result
+                    ? "적중"
+                    : "오답"}
                 </span>
               </div>
               <div className="text-sm text-gray-500 flex items-center gap-2">
@@ -209,9 +245,7 @@ export default function MyMain() {
                 <span>•</span>
                 <span
                   className={`rounded text-xs font-semibold ${
-                    p.pick
-                      ? "text-green-700"
-                      : "text-red-700"
+                    p.pick ? "text-green-700" : "text-red-700"
                   }`}
                 >
                   {p.pick ? choice[1] : choice[0]}
@@ -244,20 +278,32 @@ export default function MyMain() {
               </div>
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold",
-                  ${m.result ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
+                  ${
+                    m.result
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
               >
                 {m.result !== null ? "정답 입력 완료" : "정답 입력 대기"}
               </span>
             </div>
 
             {m.result !== null ? (
-              <div className="px-4 py-2 inline-block rounded-lg font-bold bg-primary-color text-white">{m.result ? choice[1] : choice[0]}</div>
+              <div className="px-4 py-2 inline-block rounded-lg font-bold bg-primary-color text-white">
+                {m.result ? choice[1] : choice[0]}
+              </div>
             ) : (
               <div className="flex gap-2 mt-3">
-                <button onClick={() => handleResultPick(m.post_id, 1)} className="px-4 py-2 rounded-lg font-bold border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
+                <button
+                  onClick={() => handleResultPick(m.post_id, 1)}
+                  className="px-4 py-2 rounded-lg font-bold border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
+                >
                   {choice[1]}
                 </button>
-                <button onClick={() => handleResultPick(m.post_id, 0)} className="px-4 py-2 rounded-lg font-bold border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-colors">
+                <button
+                  onClick={() => handleResultPick(m.post_id, 0)}
+                  className="px-4 py-2 rounded-lg font-bold border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                >
                   {choice[0]}
                 </button>
               </div>
@@ -267,7 +313,10 @@ export default function MyMain() {
       </section>
 
       <section className="mb-6 pt-6 border-t border-gray-100 text-center">
-        <button className="px-4 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 font-semibold hover:bg-rose-100">
+        <button
+          onClick={handleDeleteUser}
+          className="px-4 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 font-semibold hover:bg-rose-100"
+        >
           회원 탈퇴
         </button>
         <p className="text-xs text-gray-500 mt-2">
