@@ -45,6 +45,11 @@ def checkNick(nick):
 def checkId(id):
     return uDao.checkId(id)
 
+@app.get("/auth/check-login")
+def checkLogin(id:str = Depends(uDao.getUserId)):
+    print(id)
+    return uDao.checkLogin(id)
+
 @app.post("/auth/login")
 def login(id: str = Form(), pw: str = Form()):
     return uDao.login(id, pw)

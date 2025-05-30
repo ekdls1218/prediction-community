@@ -85,7 +85,7 @@ class PredictionDAO:
                 "localhost", "root", "root", "prediction_community"
             )
 
-            sql = "select * from pc_post where deadline >= NOW()"
+            sql = "select * from pc_post where deadline >= NOW() order by id desc"
 
             cur.execute(sql)
 

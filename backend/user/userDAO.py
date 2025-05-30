@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta, timezone
+
+from fastapi import HTTPException, Header
 from DainLibrary.dbManager import DBManager
 from DainLibrary.fileManager import FileManager
 from fastapi.responses import JSONResponse
@@ -15,6 +17,18 @@ class UserDAO:
         self.capacity = 30 * 1024 * 1024
         self.jwtKey = "qwerasdfzxcv"
         self.jwtAlgorithm = "HS256"
+    
+    def getUserId(self, authorization: str = Header(None)):
+        if not authorization:
+            raise HTTPException(status_code=401, detail="No token provided")
+        token = authorization.split(" ")[1]
+        try:
+            payload = jwt.decode(token, self.jwtKey, self.jwtAlgorithm)
+            return payload["id"]
+        except jwt.ExpiredSignatureError:
+            return {"result": "만료됨"}
+        except jwt.exceptions.DecodeError:
+            return {"result": "만든 적 없음"}
 
     def checkNick(self, nick):
         try:
@@ -50,6 +64,39 @@ class UserDAO:
         finally:
             DBManager.closeConCur(con, cur)
 
+    def checkLogin(self, id):
+        try:
+            con, cur = DBManager.makeConCur(
+                "localhost", "root", "root", "prediction_community"
+            )
+            sql = "select * from pc_user where id='%s'" % id
+            cur.execute(sql)
+            row = cur.fetchone()
+
+            if row:
+                dbId, dbPw, dbNick, dbBirth, dbGender, dbAddr, dbPsa = row
+                r = {
+                    "id": dbId,
+                    "pw": dbPw,
+                    "nickName": dbNick,
+                    "birth": datetime.strftime(dbBirth, "%Y-%m-%d"),
+                    "gender": dbGender,
+                    "addr": dbAddr,
+                    "psa": dbPsa,
+                    "exp": datetime.now(timezone.utc) + timedelta(seconds=36000),
+                }
+                jwtR = jwt.encode(r, self.jwtKey, self.jwtAlgorithm)
+                return JSONResponse(
+                    {"id":dbId, "nick":dbNick, "psa":dbPsa, "token": jwtR}, headers=self.h
+                )
+            else:
+                return JSONResponse({"result": "로그인 실패(아이디)"}, headers=self.h)
+        except Exception as e:
+            return JSONResponse({"result": "DB문제 발생"}, headers=self.h)
+        finally:
+            DBManager.closeConCur(con, cur)
+
+
     def login(self, id, pw):
         try:
             con, cur = DBManager.makeConCur(
@@ -74,7 +121,7 @@ class UserDAO:
                     }
                     jwtR = jwt.encode(r, self.jwtKey, self.jwtAlgorithm)
                     return JSONResponse(
-                        {"result": "로그인 성공", "user": jwtR}, headers=self.h
+                        {"result": "로그인 성공","id":dbId, "nick":dbNick, "psa":dbPsa, "token": jwtR}, headers=self.h
                     )
                 else:
                     return JSONResponse(
@@ -108,10 +155,9 @@ class UserDAO:
                 "localhost", "root", "root", "prediction_community"
             )
             sql = (
-                "insert into pc_user values ('%s', '%s','%s', '%s' ,'%s','%s','%s')"
-                % (id, pw, nick, birth, gender, addr, fileName)
+                "insert into pc_user values (%s, %s,%s, %s ,%s,%s,%s)"
             )
-            cur.execute(sql)
+            cur.execute(sql, (id, pw, nick, birth, gender, addr, fileName))
             if cur.rowcount == 1:
                 con.commit()
                 return JSONResponse({"result": id + "님 가입 성공"}, headers=self.h)
