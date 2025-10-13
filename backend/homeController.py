@@ -136,3 +136,21 @@ def addResult(r:Result):
 @app.get("/stats/update")
 def updateAccuracy(user_id:str = Depends(mDao.getUserId)):
     return mDao.updateAccuracy(user_id)
+
+@app.get("/my/info")
+def getMyInfo(user_id:str = Depends(mDao.getUserId)):
+    return mDao.getMyInfo(user_id)
+
+@app.patch("/my/info/update")
+async def updateMyInfo(
+    psa: Optional[UploadFile] = File(None),
+    nick: str = Form(),
+    birth: str = Form(),
+    gender: str = Form(),
+    addr1: str = Form(),
+    addr2: str = Form(),
+    addr3: str = Form(),
+    id:str = Depends(mDao.getUserId)
+):
+    print(id, nick, birth, gender, addr1, addr2, addr3, psa)
+    return await mDao.updateMyInfo(id, nick, birth, gender, addr1, addr2, addr3, psa)

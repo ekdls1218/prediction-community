@@ -2,16 +2,20 @@ from fastapi import HTTPException, Header
 import jwt
 from DainLibrary.dbManager import DBManager
 from datetime import datetime
+from DainLibrary.fileManager import FileManager
 
 class MyDAO:
     def __init__(self):
         self.jwtKey = "qwerasdfzxcv"
         self.jwtAlgorithm = "HS256"
+        self.filePath = "./user/psaFolder/"
+        self.capacity = 30 * 1024 * 1024
 
     def getUserId(self, authorization: str = Header(None)):
         if not authorization:
             raise HTTPException(status_code=401, detail="No token provided")
         token = authorization.split(" ")[1]  # "Bearer xxx" → "xxx"
+
         try:
             payload = jwt.decode(token, self.jwtKey, self.jwtAlgorithm)
             return payload["id"]
@@ -246,5 +250,65 @@ class MyDAO:
         except Exception as e:
             print(e)
             return {"result": "DB문제 발생"}
+        finally:
+            DBManager.closeConCur(con, cur)
+
+    def getMyInfo(self, userId):
+        try:
+            con, cur = DBManager.makeConCur(
+                "localhost", "root", "root", "prediction_community"
+            )
+
+            sql = "select nick, birth, gender, addr, psa from pc_user where id= %s"
+            cur.execute(sql, (userId,))
+            row = cur.fetchone()
+
+            if row:
+                dbNick, dbBirth, dbGender, dbAddr, dbPsa = row
+                dbAddr = dbAddr.split("!")
+                r = {
+                    "nick": dbNick,
+                    "birth": datetime.strftime(dbBirth, "%Y-%m-%d"),
+                    "gender": dbGender,
+                    "addr1": dbAddr[2],
+                    "addr2": dbAddr[0],
+                    "addr3": dbAddr[1],
+                    "psa": dbPsa,
+                }
+                
+                return r
+            else:
+                return {"result": "로그인 실패(아이디)"}
+        except Exception as e:
+            return {"result": "DB문제 발생"}
+        finally:
+            DBManager.closeConCur(con, cur)
+
+    async def updateMyInfo(self, id, nick, birth, gender, addr1, addr2, addr3, psa):
+        fileName = psa
+        if psa != None:
+            try:
+                content = await psa.read()
+                if len(content) > self.capacity:
+                    raise
+                fileName = FileManager.changeName(fileName.filename)
+                FileManager.writeFile(self.filePath, fileName, content)
+
+            except Exception as e:
+                return {"result": id + "님 정보 수정 실패(파일)"}
+
+        try:
+            addr = addr2 + "!" + addr3 + "!" + addr1
+            con, cur = DBManager.makeConCur(
+                "localhost", "root", "root", "prediction_community"
+            )
+            sql_user = "update pc_user set nick=%s, birth=%s, gender=%s, addr=%s, psa=%s where id=%s"
+            cur.execute(sql_user, (nick, birth, gender, addr, fileName, id))
+            
+            if cur.rowcount == 1:
+                con.commit()
+                return {"result": id + "님 정보 수정 성공"}
+        except Exception as e:
+            return {"result": id + "님 정보 수정 실패(DB)"}
         finally:
             DBManager.closeConCur(con, cur)
