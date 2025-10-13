@@ -279,7 +279,7 @@ export default function MyMain() {
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold",
                   ${
-                    m.result
+                    m.result !== null
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-amber-100 text-amber-700"
                   }`}
