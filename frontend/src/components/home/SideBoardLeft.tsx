@@ -3,6 +3,7 @@
 import { setCategory } from "@/redux/categorySlice";
 import { AppDispatch, RootState } from "@/redux/store";
 import axios from "axios";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -14,6 +15,7 @@ interface AllStat {
 
 export default function SideBoardLeft() {
   const dispatch = useDispatch<AppDispatch>();
+  const pathname = usePathname();
   const user = useSelector((state: RootState) => state.user);
   const { categories, selectedCategory } = useSelector(
     (state: RootState) => state.category
@@ -23,16 +25,20 @@ export default function SideBoardLeft() {
       allTotal: 0,
       allAccuracy: 0,
     });
+    console.log(allStats)
 
   useEffect(() => {
+    if (!user.id) return;
+
     axios
       .get("http://localhost:8000/my/stats/all-stat", {
         headers: { Authorization: `Bearer ${user.token}` },
       })
       .then((res) => {
+        console.log(res.data)
         setAllStats(res.data);
       });
-  }, [])
+  }, [user.id, pathname])
 
   return (
     <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-4">
