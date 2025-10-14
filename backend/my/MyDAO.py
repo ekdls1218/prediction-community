@@ -312,3 +312,34 @@ class MyDAO:
             return {"result": id + "님 정보 수정 실패(DB)"}
         finally:
             DBManager.closeConCur(con, cur)
+
+    def getRankUser(self):
+        try:
+            con, cur = DBManager.makeConCur(
+                "localhost", "root", "root", "prediction_community"
+            )
+
+            sql = "select u.nick, sum(s.total_count)"
+            sql += " from pc_stats as s" 
+            sql += " join pc_user as u on s.user_id = u.id"
+            sql += " group by s.user_id"
+            sql += " order by sum(s.total_count) DESC"
+            sql += " limit 3;"
+
+            cur.execute(sql)
+            row = cur.fetchall()
+            print(row)
+
+            rank = []
+            if row:
+                for nick, total in row:
+                    rank.append({"nick": nick, "total_count": total})
+            
+            print(rank)
+            return rank
+
+        except Exception as e:
+            print(e)
+            return {"result": "DB문제 발생"}
+        finally:
+            DBManager.closeConCur(con, cur)

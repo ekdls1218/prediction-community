@@ -93,7 +93,7 @@ def getCategory():
 
 @app.post("/predictions/vote")
 async def addVote(v: Vote):
-    print("ok")
+    print(v.vote, v.userInfo, v.postId, v.category_id)
     return await pDao.addVote(v.vote, v.userInfo, v.postId, v.category_id)
 
 @app.get("/predictions/{post_id}/vote")
@@ -154,3 +154,7 @@ async def updateMyInfo(
 ):
     print(id, nick, birth, gender, addr1, addr2, addr3, psa)
     return await mDao.updateMyInfo(id, nick, birth, gender, addr1, addr2, addr3, psa)
+
+@app.get("/rank/user")
+def getRankUser():
+    return mDao.getRankUser()
