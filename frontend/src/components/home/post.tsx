@@ -70,6 +70,7 @@ export default function Post({ post, userVotes }: PostProps) {
         vote: v,
         userInfo: sessionStorage.getItem("loginUser"),
         postId: post.id,
+        category_id: post.category,
       })
       .then((res) => {
         if (res.data.result === "성공") {
