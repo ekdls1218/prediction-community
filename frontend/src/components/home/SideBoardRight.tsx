@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface UserVoteRank {
@@ -13,6 +14,7 @@ interface PostVoteRank {
 }
 
 export default function SideBoardRight() {
+    const pathname = usePathname();
     const [userVoteRank, setUserVoteRank] = useState<UserVoteRank[]>([])
     const [postVoteRank, setPostVoteRank] = useState<PostVoteRank[]>([])
     useEffect(() => {
@@ -25,7 +27,7 @@ export default function SideBoardRight() {
             console.log(res.data)
             setPostVoteRank(res.data)
         })
-    }, [])
+    }, [pathname])
     return(
         <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-4">
             <div>
