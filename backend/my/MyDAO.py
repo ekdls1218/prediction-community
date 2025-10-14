@@ -343,3 +343,33 @@ class MyDAO:
             return {"result": "DB문제 발생"}
         finally:
             DBManager.closeConCur(con, cur)
+
+    def getRankPost(self):
+        try:
+            con, cur = DBManager.makeConCur(
+                "localhost", "root", "root", "prediction_community"
+            )
+
+            sql = "select p.title"
+            sql += " from pc_vote as v"
+            sql += " join pc_post as p on v.post_id = p.id"
+            sql += " group by v.post_id"
+            sql += " order by count(v.post_id) DESC"
+            sql += " limit 3;"
+
+            cur.execute(sql)
+            row = cur.fetchall()
+
+            rank = []
+            if row:
+                for title, vote_count in row:
+                    rank.append({"title": title})
+            
+            # print(rank)
+            return rank
+
+        except Exception as e:
+            print(e)
+            return {"result": "DB문제 발생"}
+        finally:
+            DBManager.closeConCur(con, cur)

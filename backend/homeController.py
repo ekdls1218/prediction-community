@@ -158,3 +158,7 @@ async def updateMyInfo(
 @app.get("/rank/user")
 def getRankUser():
     return mDao.getRankUser()
+
+@app.get("/rank/post")
+def getRankPost():
+    return mDao.getRankPost()
