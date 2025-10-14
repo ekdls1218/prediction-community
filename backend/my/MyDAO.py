@@ -362,7 +362,7 @@ class MyDAO:
 
             rank = []
             if row:
-                for title, vote_count in row:
+                for title in row:
                     rank.append({"title": title})
             
             # print(rank)
