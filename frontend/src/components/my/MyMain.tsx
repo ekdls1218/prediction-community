@@ -139,15 +139,17 @@ export default function MyMain() {
       >
         <div className="text-center pb-6 mb-6 border-b border-gray-100">
           <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-3xl font-bold bg-primary-color">
-            {user.psa ? (
+            {/* {user.psa ? (
               <Image
                 src={user.psa}
                 alt="프로필 사진"
+                width={50}
+                height={50}
                 className="w-20 h-20 rounded-full object-cover"
               />
-            ) : (
+            ) : ( */}
               <span>{user.nick?.charAt(0).toUpperCase()}</span>
-            )}
+            {/* )} */}
           </div>
           <div className="text-lg font-semibold text-gray-800">{user.nick}</div>
         </div>
