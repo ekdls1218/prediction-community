@@ -17,7 +17,6 @@ interface Post {
 
 type PostProps = {
   post: Post;
-  userVotes: { post_id: number; pick: number }[];
 };
 
 interface VoteInfo {
@@ -28,7 +27,7 @@ interface VoteInfo {
   false_rate: number;
 }
 
-export default function Post({ post, userVotes }: PostProps) {
+export default function Post({ post }: PostProps) {
   // console.log(post)
   const user = useSelector((state: RootState) => state.user);
   const getDday = (deadline: string) => {
@@ -39,6 +38,7 @@ export default function Post({ post, userVotes }: PostProps) {
     return dday > 0 ? dday : "Day";
   };
   const dday = getDday(post.deadline);
+  const [userVotes, setUserVotes] = useState<{ post_id: number; pick: number }[]>([]);
   const buttons = [
     { vote: 1, label: "맞을 것 같아!", color: "green" },
     { vote: 0, label: "틀릴 듯!", color: "red" },
@@ -82,6 +82,20 @@ export default function Post({ post, userVotes }: PostProps) {
         }
       });
   };
+
+  useEffect(() => {
+    if (!user.isLogin) return;
+
+    axios
+      .get("http://localhost:8000/predictions/votes", {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("loginUser")}`,
+        },
+      })
+      .then((res) => {
+        setUserVotes(res.data);
+      });
+  }, [post.id]);
 
   useEffect(() => {
     if (!user.isLogin) return;
