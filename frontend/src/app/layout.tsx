@@ -1,14 +1,8 @@
-"use client";
 import Header from "@/components/Header";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Provider, useDispatch } from "react-redux";
-import { AppDispatch, store } from "@/redux/store";
-import { useEffect } from "react";
-import axios from "axios";
-import { setCategories } from "@/redux/categorySlice";
-import { setPrediction } from "@/redux/predictionSlice";
-import { clearUser, setUser } from "@/redux/userSlice";
+import Providers from "./providers";
+import InitDataLoader from "./InitDataLoader";
 
 const pyeongChangPeace = localFont({
   src: [
@@ -27,42 +21,16 @@ const pyeongChangPeace = localFont({
   display: "swap",
 });
 
-function InitDataLoader () {
-  const dispatch = useDispatch<AppDispatch>();
-  
-  useEffect(() => {
-    const token = sessionStorage.getItem("loginUser");
-    if (!token) return;
-
-    axios
-      .get("http://localhost:8000/auth/check-login", { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => {dispatch(setUser({...res.data, "isLogin":true}));})
-      .catch(() => {
-        dispatch(clearUser());
-        sessionStorage.removeItem("loginUser");
-      });
-    
-    axios
-      .get("http://localhost:8000/stats/update", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-  }, []);
-  
-  useEffect(() => {
-    axios.get("http://localhost:8000/category").then((res) => {
-      dispatch(setCategories(res.data));
-    });
-  }, [dispatch]);
-
-  return null;
-}
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const res = await fetch("http://localhost:8000/category", {
+    cache: "no-store",
+  });
+  const categories = await res.json();
 
   return (
     <html lang="ko" className={pyeongChangPeace.variable}>
       <body>
-        <Provider store={store}>
+        <Providers initialCategories={categories}>
           <InitDataLoader />
           <header className="shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
             <Header />
@@ -70,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="h-[calc(100vh-80px)] overflow-hidden">
             {children}
           </main>
-        </Provider>
+        </Providers>
       </body>
     </html>
   );
