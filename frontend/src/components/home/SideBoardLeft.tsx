@@ -41,7 +41,7 @@ export default function SideBoardLeft() {
   }, [user.id, pathname])
 
   return (
-    <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-4">
+    <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-3">
       <div>
         <h3 className="text-lg font-semibold text-gray-800 pl-1 mb-2">
           카테고리
