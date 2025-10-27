@@ -1,33 +1,11 @@
-"use client";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 
-import axios from "axios";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-
-interface UserVoteRank {
-    nick: string;
-    total_count:number;
-}
-
-interface PostVoteRank {
-    title: string;
-}
 
 export default function SideBoardRight() {
-    const pathname = usePathname();
-    const [userVoteRank, setUserVoteRank] = useState<UserVoteRank[]>([])
-    const [postVoteRank, setPostVoteRank] = useState<PostVoteRank[]>([])
-    useEffect(() => {
-        axios.get("http://localhost:8000/rank/user").then((res) => {
-            console.log(res.data)
-            setUserVoteRank(res.data)
-        })
-
-        axios.get("http://localhost:8000/rank/post").then((res) => {
-            console.log(res.data)
-            setPostVoteRank(res.data)
-        })
-    }, [pathname])
+    const userVoteRank = useSelector((state: RootState) => state.rank.rankUsers)
+    const postVoteRank = useSelector((state: RootState) => state.rank.rankPosts);
+    
     return(
         <div className="w-1/5 h-full bg-white border-2 border-gray-200 rounded-xl p-4">
             <div>

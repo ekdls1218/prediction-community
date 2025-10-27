@@ -5,15 +5,20 @@ import { store } from "@/redux/store";
 import { setCategories } from "@/redux/categorySlice";
 import { useEffect } from "react";
 import { setPrediction } from "@/redux/predictionSlice";
+import { setRankPosts, setRankUsers } from "@/redux/rankSlice";
 
 export default function Providers({
   children,
   initialCategories,
-  initialPredictions
+  initialPredictions,
+  initialRankUsers,
+  initialRankPosts
 }: {
   children: React.ReactNode;
   initialCategories: [];
   initialPredictions: [];
+  initialRankUsers: [];
+  initialRankPosts: [];
 }) {
   useEffect(() => {
     if (initialCategories) {
@@ -26,6 +31,18 @@ export default function Providers({
       store.dispatch(setPrediction(initialPredictions));
     }
   }, [initialPredictions]);
+
+  useEffect(() => {
+    if (initialRankUsers) {
+      store.dispatch(setRankUsers(initialRankUsers));
+    }
+  }, [initialRankUsers]);
+
+  useEffect(() => {
+    if (initialRankPosts) {
+      store.dispatch(setRankPosts(initialRankPosts));
+    }
+  }, [initialRankPosts]);
 
   return <Provider store={store}>{children}</Provider>;
 }

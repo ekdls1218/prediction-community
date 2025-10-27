@@ -2,12 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import  userReducer from "./userSlice";
 import categoryReducer from "./categorySlice";
 import predictionReducer from "./predictionSlice";
+import rankReducer from "./rankSlice";
 
 export const store = configureStore({
   reducer: {
     user: userReducer,
     category: categoryReducer,
-    prediction: predictionReducer
+    prediction: predictionReducer,
+    rank: rankReducer,
   },
 });
 

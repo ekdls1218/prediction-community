@@ -21,20 +21,32 @@ const pyeongChangPeace = localFont({
   display: "swap",
 });
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const categoryRes = await fetch("http://localhost:8000/category", {
-    cache: "no-store",
-  });
-  const predictionsRes = await fetch("http://localhost:8000/predictions", {
-    cache: "no-store",
-  });
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [categoryRes, predictionsRes, rankUserRes, rankPostRes] =
+    await Promise.all([
+      fetch("http://127.0.0.1:8000/category", { cache: "no-store" }),
+      fetch("http://127.0.0.1:8000/predictions", { cache: "no-store" }),
+      fetch("http://127.0.0.1:8000/rank/user", { cache: "no-store" }),
+      fetch("http://127.0.0.1:8000/rank/post", { cache: "no-store" }),
+    ]);
   const categories = await categoryRes.json();
   const predictions = await predictionsRes.json();
+  const rankUsers = await rankUserRes.json();
+  const rankPosts = await rankPostRes.json();
 
   return (
     <html lang="ko" className={pyeongChangPeace.variable}>
       <body>
-        <Providers initialCategories={categories} initialPredictions={predictions} >
+        <Providers
+          initialCategories={categories}
+          initialPredictions={predictions}
+          initialRankUsers={rankUsers}
+          initialRankPosts={rankPosts}
+        >
           <InitDataLoader />
           <header className="shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
             <Header />
