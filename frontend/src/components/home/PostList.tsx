@@ -12,7 +12,7 @@ interface Post {
 }
 
 export default function PostList() {
-  const posts = useSelector((stste: RootState) => stste.prediction.post)
+  const posts = useSelector((state: RootState) => state.prediction.post)
   const seletedCategory = useSelector(
     (state: RootState) => state.category.selectedCategory
   );
