@@ -22,15 +22,19 @@ const pyeongChangPeace = localFont({
 });
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const res = await fetch("http://localhost:8000/category", {
+  const categoryRes = await fetch("http://localhost:8000/category", {
     cache: "no-store",
   });
-  const categories = await res.json();
+  const predictionsRes = await fetch("http://localhost:8000/predictions", {
+    cache: "no-store",
+  });
+  const categories = await categoryRes.json();
+  const predictions = await predictionsRes.json();
 
   return (
     <html lang="ko" className={pyeongChangPeace.variable}>
       <body>
-        <Providers initialCategories={categories}>
+        <Providers initialCategories={categories} initialPredictions={predictions} >
           <InitDataLoader />
           <header className="shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
             <Header />
