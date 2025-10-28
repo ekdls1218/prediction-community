@@ -3,31 +3,23 @@ import jwt
 from DainLibrary.dbManager import DBManager
 from datetime import datetime
 from DainLibrary.fileManager import FileManager
+import os
 
 class MyDAO:
     def __init__(self):
-        self.jwtKey = "qwerasdfzxcv"
-        self.jwtAlgorithm = "HS256"
+        self.db_host = os.getenv("DB_HOST")
+        self.db_user = os.getenv("DB_USER")
+        self.db_pass = os.getenv("DB_PASS")
+        self.db_name = os.getenv("DB_NAME")
+        self.jwtKey = os.getenv("JWT_SECRET")
+        self.jwtAlgorithm = os.getenv("JWT_ALGO")
         self.filePath = "./user/psaFolder/"
         self.capacity = 30 * 1024 * 1024
-
-    def getUserId(self, authorization: str = Header(None)):
-        if not authorization:
-            raise HTTPException(status_code=401, detail="No token provided")
-        token = authorization.split(" ")[1]  # "Bearer xxx" → "xxx"
-
-        try:
-            payload = jwt.decode(token, self.jwtKey, self.jwtAlgorithm)
-            return payload["id"]
-        except jwt.ExpiredSignatureError:
-            return {"result": "만료됨"}
-        except jwt.exceptions.DecodeError:
-            return {"result": "만든 적 없음"}
 
     def getAllStat(self, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select sum(correct_count) as all_correct_count, sum(total_count) as all_total_count,"
@@ -55,7 +47,7 @@ class MyDAO:
     def getCategoryStat(self, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select name, accuracy_rate"
@@ -81,7 +73,7 @@ class MyDAO:
     def getVotePosts(self, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select p.id, p.title, p.deadline, v.pick, r.result, c.name"
@@ -121,7 +113,7 @@ class MyDAO:
     def getMyPosts(self, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select p.id, p.title, p.deadline, r.result, c.name"
@@ -159,7 +151,7 @@ class MyDAO:
     def addResult(self, postId, result):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql_result = "update pc_result set result = %s where post_id = %s"
@@ -183,7 +175,7 @@ class MyDAO:
         print(f"🔥 updateStats 실행됨: {userId}")
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql_compare = "select v.pick, r.result, v.user_id, p.category_id, p.id"
@@ -267,7 +259,7 @@ class MyDAO:
     def getMyInfo(self, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select nick, birth, gender, addr, psa from pc_user where id= %s"
@@ -311,7 +303,7 @@ class MyDAO:
         try:
             addr = addr2 + "!" + addr3 + "!" + addr1
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
             sql_user = "update pc_user set nick=%s, birth=%s, gender=%s, addr=%s, psa=%s where id=%s"
             cur.execute(sql_user, (nick, birth, gender, addr, fileName, id))
@@ -331,7 +323,7 @@ class MyDAO:
     def getRankUser(self):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select u.nick, sum(s.total_count)"
@@ -362,7 +354,7 @@ class MyDAO:
     def getRankPost(self):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select p.title"

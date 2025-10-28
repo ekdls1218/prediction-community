@@ -5,6 +5,7 @@ from DainLibrary.dbManager import DBManager
 from DainLibrary.fileManager import FileManager
 from fastapi.responses import JSONResponse
 import jwt
+import os
 
 
 class UserDAO:
@@ -15,26 +16,19 @@ class UserDAO:
         }
         self.filePath = "./user/psaFolder/"
         self.capacity = 30 * 1024 * 1024
-        self.jwtKey = "qwerasdfzxcv"
-        self.jwtAlgorithm = "HS256"
-    
-    def getUserId(self, authorization: str = Header(None)):
-        if not authorization:
-            raise HTTPException(status_code=401, detail="No token provided")
-        token = authorization.split(" ")[1]
-        try:
-            payload = jwt.decode(token, self.jwtKey, self.jwtAlgorithm)
-            return payload["id"]
-        except jwt.ExpiredSignatureError:
-            return {"result": "만료됨"}
-        except jwt.exceptions.DecodeError:
-            return {"result": "만든 적 없음"}
+        self.db_host = os.getenv("DB_HOST")
+        self.db_user = os.getenv("DB_USER")
+        self.db_pass = os.getenv("DB_PASS")
+        self.db_name = os.getenv("DB_NAME")
+        self.jwtKey = os.getenv("JWT_SECRET")
+        self.jwtAlgorithm = os.getenv("JWT_ALGO")
 
     def checkNick(self, nick):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
+
             sql = "select count(*) from pc_user where nick=%s" 
             cur.execute(sql, (nick,))
 
@@ -50,8 +44,9 @@ class UserDAO:
     def checkId(self, id):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
+
             sql = "select count(*) from pc_user where id=%s"
             cur.execute(sql, (id,))
 
@@ -67,8 +62,9 @@ class UserDAO:
     def checkLogin(self, id):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
+
             sql = "select * from pc_user where id=%s"
             cur.execute(sql, (id,))
             row = cur.fetchone()
@@ -100,8 +96,9 @@ class UserDAO:
     def login(self, id, pw):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
+
             sql = "select * from pc_user where id=%s"
             cur.execute(sql, (id,))
             row = cur.fetchone()
@@ -152,8 +149,9 @@ class UserDAO:
         try:
             addr = addr2 + "!" + addr3 + "!" + addr1
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
+
             sql_user = (
                 "insert into pc_user values (%s, %s,%s, %s ,%s,%s,%s)"
             )
@@ -182,8 +180,9 @@ class UserDAO:
     def deleteUser(self, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
+
             sql = "delete from pc_user where id = %s"
             cur.execute(sql, (userId,))
 

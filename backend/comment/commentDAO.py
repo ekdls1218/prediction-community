@@ -1,47 +1,28 @@
 from fastapi import HTTPException, Header
 import jwt
 from DainLibrary.dbManager import DBManager
+import os
 
 class CommentDAO:
     def __init__(self):
-        self.jwtKey = "qwerasdfzxcv"
-        self.jwtAlgorithm = "HS256"
+        self.db_host = os.getenv("DB_HOST")
+        self.db_user = os.getenv("DB_USER")
+        self.db_pass = os.getenv("DB_PASS")
+        self.db_name = os.getenv("DB_NAME")
+        self.jwtKey = os.getenv("JWT_SECRET")
+        self.jwtAlgorithm = os.getenv("JWT_ALGO")
 
-    def getUserId(self, authorization: str = Header(None)):
-        if not authorization:
-            raise HTTPException(status_code=401, detail="No token provided")
-        token = authorization.split(" ")[1] 
-        try:
-            payload = jwt.decode(token, self.jwtKey, self.jwtAlgorithm)
-            return payload["id"]
-        except jwt.ExpiredSignatureError:
-            return {"result": "만료됨"}
-        except jwt.exceptions.DecodeError:
-            return {"result": "만든 적 없음"}
-
-    def getUserId2(self, userInfo):
-        try:
-            user = jwt.decode(userInfo, self.jwtKey, self.jwtAlgorithm)
-            return user["id"]
-        except jwt.ExpiredSignatureError:
-            return {"result": "만료됨"}
-        except jwt.exceptions.DecodeError:
-            return {"result": "만든 적 없음"}
-
-
-    async def addComment(self, content, userInfo, postId):
-        userId = self.getUserId2(userInfo)
-        print(content, userId, postId)
+    async def addComment(self, content, userId, postId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = (
-                "insert into pc_comment (content, user_id, post_id) values('%s', '%s', '%d')" % (content, userId, postId)
+                "insert into pc_comment (content, user_id, post_id) values(%s, %s, %s)"
             )
 
-            cur.execute(sql)
+            cur.execute(sql, (content, userId, postId,))
 
             if cur.rowcount == 1:
                 # print("성공")
@@ -58,12 +39,12 @@ class CommentDAO:
     def getComment(self, postId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
-            sql = "select * from pc_comment where post_id='%d' order by id" %(postId)
+            sql = "select * from pc_comment where post_id=%s order by id" %(postId)
 
-            cur.execute(sql)
+            cur.execute(sql, (postId,))
 
             comments = []
             for id, content, user_id, post_id in cur :  

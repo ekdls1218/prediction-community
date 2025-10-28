@@ -2,40 +2,22 @@ from fastapi import HTTPException, Header
 from fastapi.responses import JSONResponse
 from DainLibrary.dbManager import DBManager
 import jwt
+import os
 
 
 class PredictionDAO:
     def __init__(self):
-        self.jwtKey = "qwerasdfzxcv"
-        self.jwtAlgorithm = "HS256"
+        self.db_host = os.getenv("DB_HOST")
+        self.db_user = os.getenv("DB_USER")
+        self.db_pass = os.getenv("DB_PASS")
+        self.db_name = os.getenv("DB_NAME")
+        self.jwtKey = os.getenv("JWT_SECRET")
+        self.jwtAlgorithm = os.getenv("JWT_ALGO")
 
-    def getUserId2(self, authorization: str = Header(None)):
-        if not authorization:
-            raise HTTPException(status_code=401, detail="No token provided")
-        token = authorization.split(" ")[1]  # "Bearer xxx" → "xxx"
-        try:
-            payload = jwt.decode(token, self.jwtKey, self.jwtAlgorithm)
-            return payload["id"]
-        except jwt.ExpiredSignatureError:
-            return {"result": "만료됨"}
-        except jwt.exceptions.DecodeError:
-            return {"result": "만든 적 없음"}
-
-    def getUserId(self, userInfo):
-        try:
-            user = jwt.decode(userInfo, self.jwtKey, self.jwtAlgorithm)
-            return user["id"]
-        except jwt.ExpiredSignatureError:
-            return {"result": "만료됨"}
-        except jwt.exceptions.DecodeError:
-            return {"result": "만든 적 없음"}
-
-    async def createPrediction(self, category, title, deadline, userInfo):
-        userId = self.getUserId(userInfo)
-
+    async def createPrediction(self, category, title, deadline, userId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql_post = (
@@ -63,7 +45,7 @@ class PredictionDAO:
     def getCategory(self):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select * from pc_category order by id"
@@ -85,7 +67,7 @@ class PredictionDAO:
     async def getPredictions(self):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select * from pc_post where deadline >= NOW() order by id desc"
@@ -112,12 +94,10 @@ class PredictionDAO:
         finally:
             DBManager.closeConCur(con, cur)
 
-    async def addVote(self, vote, userInfo, postId, categoryId):
-        userId = self.getUserId(userInfo)
-
+    async def addVote(self, vote, userId, postId, categoryId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql_vote = "insert into pc_vote (pick, user_id, post_id) values (%s, %s, %s)"
@@ -143,7 +123,7 @@ class PredictionDAO:
     def getVote(self, postId):
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select count(*) as total_vote, SUM(pick = TRUE) AS true_votes, SUM(pick = FALSE) AS false_votes,"
@@ -169,9 +149,10 @@ class PredictionDAO:
             DBManager.closeConCur(con, cur)
 
     def getUserVotes(self, userId):
+        print(userId)
         try:
             con, cur = DBManager.makeConCur(
-                "localhost", "root", "root", "prediction_community"
+                self.db_host, self.db_user, self.db_pass, self.db_name
             )
 
             sql = "select post_id, pick from pc_vote where user_id = %s;"
