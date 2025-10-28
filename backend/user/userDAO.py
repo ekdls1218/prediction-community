@@ -35,8 +35,8 @@ class UserDAO:
             con, cur = DBManager.makeConCur(
                 "localhost", "root", "root", "prediction_community"
             )
-            sql = "select count(*) from pc_user where nick='%s'" % nick
-            cur.execute(sql)
+            sql = "select count(*) from pc_user where nick=%s" 
+            cur.execute(sql, (nick,))
 
             for i in cur:
                 if i[0] == 1:
@@ -52,8 +52,8 @@ class UserDAO:
             con, cur = DBManager.makeConCur(
                 "localhost", "root", "root", "prediction_community"
             )
-            sql = "select count(*) from pc_user where id='%s'" % id
-            cur.execute(sql)
+            sql = "select count(*) from pc_user where id=%s"
+            cur.execute(sql, (id,))
 
             for i in cur:
                 if i[0] == 1:
@@ -69,8 +69,8 @@ class UserDAO:
             con, cur = DBManager.makeConCur(
                 "localhost", "root", "root", "prediction_community"
             )
-            sql = "select * from pc_user where id='%s'" % id
-            cur.execute(sql)
+            sql = "select * from pc_user where id=%s"
+            cur.execute(sql, (id,))
             row = cur.fetchone()
 
             if row:
@@ -102,8 +102,8 @@ class UserDAO:
             con, cur = DBManager.makeConCur(
                 "localhost", "root", "root", "prediction_community"
             )
-            sql = "select * from pc_user where id='%s'" % id
-            cur.execute(sql)
+            sql = "select * from pc_user where id=%s"
+            cur.execute(sql, (id,))
             row = cur.fetchone()
 
             if row:
@@ -159,16 +159,22 @@ class UserDAO:
             )
             cur.execute(sql_user, (id, pw, nick, birth, gender, addr, fileName))
             
-            if cur.rowcount == 1:
-                sql_stats = "insert into pc_stats (user_id, category_id, total_count, correct_count, accuracy_rate)"
-                sql_stats += " VALUES (%s, 1, 0, 0, 0), (%s, 2, 0, 0, 0), (%s, 3, 0, 0, 0), (%s, 4, 0, 0, 0)"
+            if cur.rowcount != 1:
+                raise ValueError("user insert failed")
 
-                cur.execute(sql_stats, (id, id, id, id))
+            sql_stats = "insert into pc_stats (user_id, category_id, total_count, correct_count, accuracy_rate)"
+            sql_stats += " VALUES (%s, 1, 0, 0, 0), (%s, 2, 0, 0, 0), (%s, 3, 0, 0, 0), (%s, 4, 0, 0, 0)"
 
-                if cur.rowcount == 4 :
-                    con.commit()
-                    return JSONResponse({"result": id + "님 가입 성공"}, headers=self.h)
+            cur.execute(sql_stats, (id, id, id, id))
+
+            if cur.rowcount != 4 :
+                raise ValueError("user stats insert failed")
+            
+            con.commit()
+            return JSONResponse({"result": id + "님 가입 성공"}, headers=self.h)
         except Exception as e:
+            if con:
+                con.rollback()
             return JSONResponse({"result": id + "님 가입 실패(DB)"}, headers=self.h)
         finally:
             DBManager.closeConCur(con, cur)
@@ -180,13 +186,15 @@ class UserDAO:
             )
             sql = "delete from pc_user where id = %s"
             cur.execute(sql, (userId,))
-            if cur.rowcount == 1:
-                print("성공")
-                con.commit()
-                return JSONResponse({"result": "성공"}, headers=self.h)
 
-            return JSONResponse({"result": "실패"}, headers=self.h)
+            if cur.rowcount != 1:
+                raise ValueError("user delete failed")
+            con.commit()
+            return JSONResponse({"result": "성공"}, headers=self.h)
+
         except Exception as e:
+            if con:
+                con.rollback()
             return JSONResponse({"result": "DB문제 발생"}, headers=self.h)
         finally:
             DBManager.closeConCur(con, cur)

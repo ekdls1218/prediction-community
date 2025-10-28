@@ -39,24 +39,22 @@ class PredictionDAO:
             )
 
             sql_post = (
-                "insert into pc_post (title, deadline, category_id, user_id) values('%s', '%s', '%d', '%s')"
-                % (title, deadline, category, userId)
+                "insert into pc_post (title, deadline, category_id, user_id) values(%s, %s, %s, %s)"
             )
 
-            cur.execute(sql_post)
+            cur.execute(sql_post, (title, deadline, category, userId))
+            post_id = cur.lastrowid
+            
+            sql_result = "insert into pc_result (post_id) values(%s)"
+            cur.execute(sql_result, (post_id,))
 
-            if cur.rowcount == 1:
-                post_id = cur.lastrowid
-                print(post_id)
-                sql_result = "insert into pc_result (post_id) values(%s)"
-                cur.execute(sql_result, (post_id,))
+            con.commit()
 
-                if cur.rowcount == 1:
-                    con.commit()
-
-                    return {"result": "성공"}
+            return {"result": "성공"}
 
         except Exception as e:
+            if con:
+                con.rollback()
             print(e)
             return {"result": "DB문제 발생"}
         finally:
@@ -122,24 +120,21 @@ class PredictionDAO:
                 "localhost", "root", "root", "prediction_community"
             )
 
-            sql_vote = "insert into pc_vote (pick, user_id, post_id) values ('%d', '%s', '%d')" % (
-                vote,
-                userId,
-                postId,
-            )
-
-            cur.execute(sql_vote)
-
-            if cur.rowcount == 1:
-                sql_stats = "update pc_stats set total_count = total_count + 1 where user_id = %s and category_id = %s"
-                cur.execute(sql_stats, (userId, categoryId))
+            sql_vote = "insert into pc_vote (pick, user_id, post_id) values (%s, %s, %s)"
+            cur.execute(sql_vote, (vote, userId, postId,))
+            
+            sql_stats = "update pc_stats set total_count = total_count + 1 where user_id = %s and category_id = %s"
+            cur.execute(sql_stats, (userId, categoryId))
                 
-                if cur.rowcount >= 1:
-                    con.commit()
-
-                    return {"result": "성공"}
+            if cur.rowcount < 1:
+                raise ValueError("total_count update failed")
+            
+            con.commit()
+            return {"result": "성공"}
 
         except Exception as e:
+            if con:
+                con.rollback()
             print(e)
             return {"result": "DB문제 발생"}
         finally:
@@ -153,9 +148,9 @@ class PredictionDAO:
 
             sql = "select count(*) as total_vote, SUM(pick = TRUE) AS true_votes, SUM(pick = FALSE) AS false_votes,"
             sql += " ROUND(SUM(pick = TRUE) / COUNT(*) * 100, 1) AS true_rate, ROUND(SUM(pick = FALSE) / COUNT(*) * 100, 1) AS false_rate "
-            sql += "FROM pc_vote WHERE post_id = %s" %(postId)
+            sql += "FROM pc_vote WHERE post_id = %s"
 
-            cur.execute(sql)
+            cur.execute(sql, (postId,))
 
             voteInfo = {}
             for total_vote, true_votes, false_votes, true_rate, false_rate in cur: 
@@ -179,9 +174,9 @@ class PredictionDAO:
                 "localhost", "root", "root", "prediction_community"
             )
 
-            sql = "select post_id, pick from pc_vote where user_id = '%s';" %(userId)
+            sql = "select post_id, pick from pc_vote where user_id = %s;"
 
-            cur.execute(sql)
+            cur.execute(sql, (userId,))
             
             userVotes = []
             for v_post_id, v_pick in cur:

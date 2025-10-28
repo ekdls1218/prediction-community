@@ -163,14 +163,17 @@ class MyDAO:
             )
 
             sql_result = "update pc_result set result = %s where post_id = %s"
-
             cur.execute(sql_result, (result, postId,))
-            if cur.rowcount == 1:
-                
-                con.commit()
-                return {"result": "성공"}
+
+            if cur.rowcount != 1:
+                raise ValueError("result update failed")
+            
+            con.commit()
+            return {"result": "성공"}
 
         except Exception as e:
+            if con :
+                con.rollback()
             print(e)
             return {"result": "DB문제 발생"}
         finally:
@@ -241,13 +244,21 @@ class MyDAO:
 
                     cur.execute(sql_update, (total_correct, accuracy, uid, cid,))
 
+                    if cur.rowcount < 1 :
+                        raise ValueError("stats update failed")
+
                 for updatePid in v["postIds"]:
                     # print(f"updatePid: {updatePid}")
-                    cur.execute(sql_is_update, (uid, updatePid))        
+                    cur.execute(sql_is_update, (uid, updatePid))    
+
+                    if cur.rowcount < 1 :
+                        raise ValueError("is_reflected update failed")    
                     
             con.commit()
 
         except Exception as e:
+            if con:
+                con.rollback()
             print(e)
             return {"result": "DB문제 발생"}
         finally:
@@ -305,10 +316,14 @@ class MyDAO:
             sql_user = "update pc_user set nick=%s, birth=%s, gender=%s, addr=%s, psa=%s where id=%s"
             cur.execute(sql_user, (nick, birth, gender, addr, fileName, id))
             
-            if cur.rowcount == 1:
-                con.commit()
-                return {"result": id + "님 정보 수정 성공"}
+            if cur.rowcount != 1:
+                raise ValueError("user info update failed")
+            
+            con.commit()
+            return {"result": id + "님 정보 수정 성공"}
         except Exception as e:
+            if con:
+                con.rollback()
             return {"result": id + "님 정보 수정 실패(DB)"}
         finally:
             DBManager.closeConCur(con, cur)
