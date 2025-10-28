@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import CommentChatModal from "./CommentChatModal";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { usePathname } from "next/navigation";
 
 interface Post {
   id: number;
@@ -29,6 +30,7 @@ interface VoteInfo {
 
 export default function Post({ post }: PostProps) {
   // console.log(post)
+  const pathname = usePathname();
   const user = useSelector((state: RootState) => state.user);
   const getDday = (deadline: string) => {
     const today = new Date();
@@ -68,10 +70,13 @@ export default function Post({ post }: PostProps) {
     axios
       .post("http://localhost:8000/predictions/vote", {
         vote: v,
-        userInfo: sessionStorage.getItem("loginUser"),
         postId: post.id,
         category_id: post.category,
-      })
+      },
+      {headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("loginUser")}`,
+        }}
+    )
       .then((res) => {
         if (res.data.result === "성공") {
           axios
@@ -95,13 +100,13 @@ export default function Post({ post }: PostProps) {
       .then((res) => {
         setUserVotes(res.data);
       });
-  }, [post.id]);
+  }, [post.id, selected, pathname]);
 
   useEffect(() => {
     if (!user.isLogin) return;
 
     const myVote = userVotes.find((v) => v.post_id === post.id);
-    // console.log(userVotes, myVote);
+    console.log(userVotes, myVote);
     if (myVote) {
       setSelected(myVote.pick);
       axios

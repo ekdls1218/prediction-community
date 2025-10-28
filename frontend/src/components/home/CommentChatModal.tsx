@@ -40,9 +40,12 @@ export default function CommentChatModal({
 
     await axios.post("http://localhost:8000/comments", {
       content: inputComments,
-      userInfo: sessionStorage.getItem("loginUser"),
       postId: post.id,
-    })
+    },
+      {headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("loginUser")}`,
+        }}
+    );
     setInputComments("");
 
     axios.get(`http://localhost:8000/comments/${post.id}`).then((res) => {

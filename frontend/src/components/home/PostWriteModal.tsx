@@ -13,12 +13,13 @@ interface PostForm {
   selectedCategory: number;
   title: string;
   deadline: string;
-  userInfo: string | null;
 }
 
 export default function PostWriteModal({ onClose }: PostWriteModalProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const categories = useSelector((state:RootState) => state.category.categories)
+  const categories = useSelector(
+    (state: RootState) => state.category.categories
+  );
   const yesterday = new Date(
     Date.now() - new Date().getTimezoneOffset() * 60000
   )
@@ -28,7 +29,6 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
     selectedCategory: categories[0].id,
     title: "",
     deadline: "",
-    userInfo: sessionStorage.getItem("loginUser")
   });
 
   const changeForm = (
@@ -38,16 +38,22 @@ export default function PostWriteModal({ onClose }: PostWriteModalProps) {
     setPostForm({ ...postForm, [name]: value });
   };
 
-  const handleSubmit = async(e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(postForm)
-    await axios.post("http://localhost:8000/predictions", postForm).then((res) => {
-      console.log(res);
-      axios.get("http://localhost:8000/predictions").then((res2) => {
-        dispatch(setPrediction(res2.data));
+    console.log(postForm);
+    await axios
+      .post("http://localhost:8000/predictions", postForm, {
+        headers: {
+          Authorization: `Bearer ${sessionStorage.getItem("loginUser")}`,
+        },
+      })
+      .then((res) => {
+        // console.log(res);
+        axios.get("http://localhost:8000/predictions").then((res2) => {
+          dispatch(setPrediction(res2.data));
+        });
+        onClose();
       });
-      onClose();
-    });
   };
 
   return (
